@@ -9,7 +9,6 @@ CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 CTestTestfile.cmake
-Makefile
 install_manifest.txt
 compile_commands.json
 CMakeScripts/
@@ -69,6 +68,7 @@ bin/
 DIARY.md
 flow.drawio
 build-*/
+test/test
 
 # Python ignores
 

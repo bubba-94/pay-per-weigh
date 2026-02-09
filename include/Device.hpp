@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 // C++ Standard
+#include <array>
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -47,21 +48,11 @@ public:
   ~Device();
 
   /**
-   * @brief Thread function that runs readFromSerial().
-   */
-  void pollWeight();
-
-  /**
-   * @brief Thread function that runs readTime().
-   */
-  void pollTime();
-
-  /**
    * @brief Getter for the weight.
    *
    * Gets the current weight in main logic.
    */
-  uint16_t getWeight();
+  int getWeight();
 
   /**
    * @brief Getter for the clock string
@@ -72,16 +63,62 @@ public:
 
 private:
   /**
-   * @brief Convert incoming weight from serial > int.
+   * @brief Thread function that runs readFromSerial().
+   *
    */
-  uint16_t convertWeight();
+  void weightThread(const int DELAY_MS);
+
+  /**
+   * @brief Thread function that runs readTime().
+   */
+  void timeThread();
+
+  /**
+   * @brief Send request every delayMs.
+   *
+   * @return true when bytes are available
+   */
+  void sendRequest();
+
+  /**
+   * @brief Function to determine if an update is needed
+   *
+   * @return true if update is needed.
+   */
+  bool checkWeight();
+
+  /**
+   * @brief Read the response from the C Vibe
+   *
+   * @return false if not successful
+   */
+  void readResponse();
+
+  /**
+   * @brief Evaluate two checksum.
+   *
+   * @return True - if response checksum and request checksum matches.
+   */
+  bool checkValidChecksum();
+
+  /**
+   * @brief Calculate checksum / might not be needed
+   *
+   * @return The checksum of response buffer.
+   */
+  uint16_t calculatedCheckSum();
+
+  /**
+   * @brief Convert incoming weight from response buffer to interger value .
+   */
+  void convertWeight();
 
   /**
    * @brief Reads fd and until condtion is met.
    *
    * Pushes a weight that is later converted to an int.
    */
-  void readFromSerial();
+  // void readFromSerial();
 
   /**
    * @brief Set the current time point.
@@ -117,19 +154,38 @@ private:
   int fd;
 
   /**
-   * @brief Threads running
+   * @brief Threads running.
    */
   std::vector<std::thread> workers;
 
   /**
-   * @brief Variable to store the incoming weight
+   * @brief Response buffer.
+   *
+   * @details
+   * Fill with the response from request and extract the actual weight.
+   * Flush and resize?
+   */
+  std::vector<uint8_t> response = {0};
+
+  /**
+   * @brief Constant request for retrieving weight.
+   */
+  const std::array<uint8_t, 7> REQ = {0xB0, 0x00, 0x41, 0x03, 0x02, 0x76, 0xC1};
+
+  /**
+   * @brief constant checksum of request byte array
+   */
+  uint16_t reqChkSum{};
+
+  /**
+   * @brief Variable to store the incoming weight.
    */
   std::string incomingWeight{};
 
   /**
-   * @brief Variable for thread safe assigning
+   * @brief Variable for data protection
    */
-  std::mutex mutex{};
+  std::mutex dataMtx{};
 
   /**
    * @brief Variable for storing the converted weight.
