@@ -54,7 +54,8 @@ SDLManager::~SDLManager() {
 void SDLManager::setup() {
 
   // Set surface framings to default
-  createTextures();
+  createTextures("assets/img/pandema.png", "assets/img/qr.png",
+                 "assets/fonts/Lato-Light.ttf");
 
   setSurfacePosition(&timeSpec, TIME_X, TIME_Y, TIME_WIDTH, TIME_HEIGHT);
   setSurfacePosition(&qrSpec, IMAGE_X, IMAGE_Y, IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -99,36 +100,25 @@ void SDLManager::printErrMsg(const char *errMsg) {
   std::cerr << "SDL_Error occured: " << errMsg << "\n";
 }
 
-void SDLManager::createTextures() {
+void SDLManager::createTextures(const std::string &logoPath,
+                                const std::string &qrPath,
+                                const std::string &fontPath) {
 
-// Loads the logo into memory
-#ifdef RPI
-  loadSurfaceOfIMG(LOGO);
-#else
-  loadSurfaceOfIMG(LOGO.c_str());
-#endif
+  // Loads the logo into memory
+  loadSurfaceOfIMG(logoPath.c_str());
   logo.reset(SDL_CreateTextureFromSurface(getRawRenderer(), getRawSurface()));
   if (!logo)
     printErrMsg(SDL_GetError());
 
-// Loads the qr code into memory
-#ifdef RPI
-  loadSurfaceOfIMG(IMAGE);
-#else
-  loadSurfaceOfIMG(IMAGE.c_str());
-#endif
+  loadSurfaceOfIMG(qrPath.c_str());
 
   image.reset(SDL_CreateTextureFromSurface(getRawRenderer(), getRawSurface()));
   if (!image)
     printErrMsg(SDL_GetError());
 
-// Loads the specified font into memory time and weight uses same font. (can
-// switch)
-#ifdef RPI
-  loadFontSurface(FONT);
-#else
-  loadFontSurface(FONT.c_str());
-#endif
+  // Loads the specified font into memory time and weight uses same font. (can
+  // switch)
+  loadFontSurface(fontPath.c_str());
 
   time.reset(SDL_CreateTextureFromSurface(getRawRenderer(), getRawSurface()));
   if (!time)

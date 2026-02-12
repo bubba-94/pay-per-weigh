@@ -4,6 +4,7 @@
 /// C++ Standard Library
 #include <cstring>
 #include <ctime>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <queue>
@@ -17,27 +18,25 @@
 
 // Image paths ()
 #ifdef RPI
-constexpr const char *LOGO = "assets/img/pandema.png";
-constexpr const char *IMAGE = "assets/img/qr.png";
-constexpr const char *FONT = "assets/fonts/Lato-Light.ttf";
 // Windows specs for Raspberry Pi Monitor (standing)
 constexpr Uint16 WINDOW_WIDTH = 1080;
 constexpr Uint16 WINDOW_HEIGHT = 1920;
 constexpr Uint16 WEIGHT_CHAR_SIZE = 200;
 #else
 
-// Relative path for assets
-constexpr const char *ASSET_DIR_STR = ASSET_DIR;
+constexpr const char *LOGO = "assets/img/pandema.png";
+constexpr const char *IMAGE = "assets/img/qr.png";
+constexpr const char *FONT = "assets/fonts/Lato-Light.ttf";
 
-inline std::string assetPath(const std::string &relative) {
-  return std::string(ASSET_DIR_STR) + "/" + relative;
+inline std::string executableDir() {
+  // Get the path of the running executable
+  std::filesystem::path exePath = std::filesystem::canonical("/proc/self/exe");
+  return exePath.parent_path().string();
 }
 
-// Paths
-const std::string LOGO = assetPath("img/pandema.png");
-const std::string IMAGE = assetPath("img/qr.png");
-const std::string FONT = assetPath("fonts/Lato-Light.ttf");
-
+inline std::string assetPath(const std::string &relative) {
+  return executableDir() + "/assets/" + relative;
+}
 // Windows specs for Dekstop Application ()
 constexpr Uint16 WINDOW_WIDTH = 1920;
 constexpr Uint16 WINDOW_HEIGHT = 1080;
@@ -153,7 +152,8 @@ private:
   /**
    * @brief Creates the texture from the provided surfaces.
    */
-  void createTextures();
+  void createTextures(const std::string &logoPath, const std::string &qrPath,
+                      const std::string &fontPath);
 
   /**
    * @brief Loads the specified IMG (.png) used for rendereing.
