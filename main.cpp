@@ -6,7 +6,7 @@ int main() {
   SDLManager sdl("pay-per-weigh");
 
 #ifdef RPI
-  Device pi;
+  Device pi("/dev/ttyACM0");
   GpioPi gpio("/dev/gpiochip4");
 #endif
 

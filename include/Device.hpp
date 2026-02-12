@@ -23,24 +23,25 @@
 #include <mutex>
 #include <thread>
 
-constexpr uint8_t DELAY = 16;
-constexpr uint8_t BUFFER_LENGTH = 32;
-
-// Test port
-constexpr const char *PORT_A = "/dev/ttyACM0";
-
 /**
  * @class Device
- * @brief Class for handling the Raspberry Pi serial port reading.
- * @details Poll a serial port for incoming weight and present the result to
- * SDL Window.
+ *
+ * @brief
+ * Class for handling the Raspberry Pi serial port reading.
+ *
+ * @details
+ * Poll a serial port for real-time data and present a valid response to the UI
  */
 class Device {
 public:
+  enum class Frame : std::uint8_t { FIND_START_FRAME, IN_FRAME };
+
   /**
    * @brief Constructor that initiates state variable and connects to port
+   *
+   * @param port Provide a port to open (ttyACM 0 or 1 in my case)
    */
-  Device();
+  Device(const std::string &port);
 
   /**
    * @brief Destructor that sets the state and joins threads.
@@ -63,15 +64,20 @@ public:
 
 private:
   /**
-   * @brief Thread function that runs readFromSerial().
+   * @brief
+   * Weight thread that handles the request and response made to the C Vibe
    *
+   * @param DELAY_MS
+   * Delay before a new request is made.
    */
   void weightThread(const int DELAY_MS);
 
   /**
    * @brief Thread function that runs readTime().
+   *
+   *
    */
-  void timeThread();
+  void timeThread(const int DELAY_MS);
 
   /**
    * @brief Send request every delayMs.
@@ -97,24 +103,58 @@ private:
   /**
    * @brief Evaluate two checksum.
    *
-   * @return True - if response checksum and request checksum matches.
+   * @return True if incoming and evaluated checksums match.
    */
   bool checkValidChecksum();
 
   /**
-   * @brief Calculate checksum / might not be needed
+   * @brief
+   * Used for evaluating a packet frames integrity.
+   * Construct a 16 bit value from the last two provided in the buffer.
+   *
+   * @param index
+   * Start index at last two indexes of response buffer.
+   *
+   * @return
+   * Checksum of current packet.
+   */
+  uint16_t getCheckSum(size_t index);
+
+  /**
+   * @brief
+   * Calculate checksum / might not be needed
    *
    * @return The checksum of response buffer.
    */
-  uint16_t calculatedCheckSum();
+  uint16_t calculateCheckSum();
 
   /**
-   * @brief Convert incoming weight from response buffer to interger value .
+   * @brief
+   * Reapply neccesary bits so the weight value is correct.
+   */
+  void reApplyBits();
+
+  /**
+   * @brief
+   * Convert incoming weight from response buffer to interger value .
    */
   void convertWeight();
 
   /**
-   * @brief Reads fd and until condtion is met.
+   * @brief
+   * Map the incoming buffer values to a certain range
+   *
+   * @param value The varaible to map/convert
+   * @param inMin Minimum value of from Hub
+   * @param inMax Maximum value of from Hub
+   * @param outMin Minimum value of desired presented value
+   * @param outMax Maximum value of desired presented value
+   */
+  int mapIncomingValue(int value, int inMin, int inMax, int outMin, int outMax);
+
+  /**
+   * @brief
+   * Reads fd and until condtion is met.
    *
    * Pushes a weight that is later converted to an int.
    */
@@ -122,8 +162,12 @@ private:
 
   /**
    * @brief Set the current time point.
+   *
+   * @param DELAY_MS
+   * Amount of time before application is shut down after a shutdown request is
+   * made
    */
-  void setTime();
+  void setTime(const int DELAY_MS);
 
   /**
    * @brief set the current timepoint
@@ -131,22 +175,23 @@ private:
   void initiateTime();
 
   /**
-   * @brief Opens fd and configures the serial port.
+   * @brief
+   * Opens fd and configures the serial port.
    *
    * Called in the constructor to start a succesful connection before reading
    * from it.
    *
    * @return true if succesful.
    */
-  bool connectToPort();
+  bool connectToPort(const std::string &PORT);
 
   /**
-   * @brief Configuarion of a port to represent a common RS232
+   * @brief
+   * Configuarion of a port to represent a common RS232
    *
    * @param settings of configured port.
-   * @param baud rating of port, must match both ends.
    */
-  void configureSerial(termios &settings, int baud);
+  void configureSerial(termios &settings);
 
   /**
    * @brief File descriptor of open port being used.
@@ -159,11 +204,12 @@ private:
   std::vector<std::thread> workers;
 
   /**
-   * @brief Response buffer.
-   *
-   * @details
-   * Fill with the response from request and extract the actual weight.
-   * Flush and resize?
+   * @brief State variable for reading from buffer.
+   */
+  Frame rwframe = Frame::FIND_START_FRAME;
+
+  /**
+   * @brief Response buffer
    */
   std::vector<uint8_t> response = {0};
 
@@ -171,11 +217,6 @@ private:
    * @brief Constant request for retrieving weight.
    */
   const std::array<uint8_t, 7> REQ = {0xB0, 0x00, 0x41, 0x03, 0x02, 0x76, 0xC1};
-
-  /**
-   * @brief constant checksum of request byte array
-   */
-  uint16_t reqChkSum{};
 
   /**
    * @brief Variable to store the incoming weight.
@@ -190,7 +231,7 @@ private:
   /**
    * @brief Variable for storing the converted weight.
    */
-  std::atomic<uint16_t> weight{};
+  std::atomic<uint16_t> weight = {0};
 
   /**
    * @brief State variable used for thread.

@@ -1,18 +1,15 @@
 #include "Device.hpp"
 
-Device::Device() : state{true} {
-  if (!connectToPort()) {
+#include <iomanip>
+
+Device::Device(const std::string &port) : state{true} {
+  if (!connectToPort(port.c_str())) {
     std::cout << "[DEVICE] Port connection failed\n";
   }
 
-  for (size_t i = 0; i < REQ.size() - sizeof(uint16_t); ++i) {
-    reqChkSum += REQ[i];
-  }
-  reqChkSum = (((reqChkSum << 1) & 0xFF00) | (reqChkSum & 0x7F) | 0xC000);
-
   // Start working threads
-  workers.emplace_back(&Device::timeThread, this);
-  workers.emplace_back(&Device::weightThread, this, 2000);
+  workers.emplace_back(&Device::timeThread, this, 200);
+  workers.emplace_back(&Device::weightThread, this, 100);
 }
 Device::~Device() {
 
@@ -28,7 +25,10 @@ Device::~Device() {
   close(fd);
 }
 
-int Device::getWeight() { return static_cast<int>(weight); }
+int Device::getWeight() {
+  std::lock_guard<std::mutex> lock(dataMtx);
+  return static_cast<int>(weight);
+}
 std::string_view Device::getTimepoint() const { return timepoint; }
 
 void Device::weightThread(const int DELAY_MS) {
@@ -42,15 +42,13 @@ void Device::weightThread(const int DELAY_MS) {
 
     readResponse();
 
-    // std::this_thread::sleep_until(nextRequest);
+    std::this_thread::sleep_until(nextRequest);
   }
 }
 
-void Device::timeThread() { setTime(); }
+void Device::timeThread(const int DELAY_MS) { setTime(DELAY_MS); }
 
 void Device::sendRequest() {
-
-  // ssize_t written = 0;
 
   // Should write 1 byte at a time.
   for (size_t index = 0; index < REQ.size(); ++index) {
@@ -59,114 +57,129 @@ void Device::sendRequest() {
     // Break at no bytes
     if (bytes <= 0)
       break;
-
-    // written += bytes;
   }
-
-  // Reset index for next request
-  std::cout << "[REQUEST] Checksum: " << static_cast<int>(reqChkSum) << ".\n";
 }
 
 bool Device::checkWeight() { return true; }
 
-/*
-long map(long x, long in_min, long in_max, long out_min, long out_max) {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-*/
-
 void Device::convertWeight() {
+
+  // Aquire lock first
   std::lock_guard<std::mutex> lock(dataMtx);
-  uint16_t raw = (response[5] << 8) | response[6] | (response[7] & 0x80) << 1;
 
-  // Match protocol
-  raw /= 10;
+  // Fill weight with buffer values
+  weight = (response[5] << 8) | response[6];
 
-  // Map weight to 0 -> 9000
-  weight = (raw - 0) * (9000 - 0) / (8 - 0) + 0;
+  weight = mapIncomingValue(weight, 0, 158, 0, 15000);
+}
+
+int Device::mapIncomingValue(int value, int inMin, int inMax, int outMin,
+                             int outMax) {
+  if (inMax == inMin)
+    return outMin;
+
+  int result =
+      static_cast<int>(value - inMin) * (outMax - outMin) / (inMax - inMin) +
+      outMin;
+
+  return static_cast<int>(result);
 }
 
 void Device::readResponse() {
 
-  bool valid = false;
-  ssize_t bytes = 0;
-  response.resize(16);
+  uint8_t byte;
 
-  for (size_t i = 0; i < response.size(); ++i) {
-    // Break if response buffer is empty
-    if (response.empty())
-      std::cout << "[RESPONSE] Buffer empty\n";
+  while (read(fd, &byte, 1) == 1) {
 
-    bytes = read(fd, &response[i], 1);
+    switch (rwframe) {
 
-    if (bytes <= 0)
+    case Frame::FIND_START_FRAME:
+      // Start frame
+      if ((byte & 0xC0) == 0x80) {
+        response.clear();
+        response.push_back(byte);
+        rwframe = Frame::IN_FRAME;
+      }
       break;
-  }
 
-  valid = checkValidChecksum();
+    case Frame::IN_FRAME:
+      response.push_back(byte);
+      // Find end frame | MASK two highest bits
+      if ((byte & 0xC0) == 0xC0) {
 
-  convertWeight();
-  // Clear if not valid.
-  if (valid) {
-    // Convert and then clear for new weight
-    convertWeight();
-    response.clear();
-  } else {
-    std::cout << "[RESPONSE] Clearing buffer | No valid Checksum\n";
-    response.clear();
+        // 1. Check valid checksum
+        if (checkValidChecksum()) {
+          // 2. Re apply bits
+          reApplyBits();
+          // 3. Convert weight
+          convertWeight();
+        }
+
+        response.clear();
+        // Find start frame again
+        rwframe = Frame::FIND_START_FRAME;
+      }
+      break;
+    }
   }
 }
 
 bool Device::checkValidChecksum() {
-  if (reqChkSum == calculatedCheckSum()) {
+
+  if (calculateCheckSum() == getCheckSum(response.size() - 2)) {
     return true;
-  } else
+  }
+
+  else {
     return false;
+  }
 }
 
-uint16_t Device::calculatedCheckSum() {
+uint16_t Device::getCheckSum(size_t startIndex) {
+  uint16_t chkSum = 0;
+
+  if (startIndex < response.size() - 1) {
+
+    // Big endian (WRONG)
+    // chkSum = (response[startIndex] << 8) | response[(startIndex +
+    // sizeof(uint8_t))]
+
+    // Little endian (RIGHT)
+    chkSum =
+        response[startIndex] | (response[(startIndex + sizeof(uint8_t))] << 8);
+
+    return chkSum;
+  }
+
+  // Error message?
+  return 1;
+}
+
+uint16_t Device::calculateCheckSum() {
 
   uint16_t resCheckSum = 0;
-  // size_t curIndex = 0;
-  // size_t startIndex = 0;
 
-  for (size_t i = 0; i < response.size() - sizeof(uint16_t); i++) {
+  for (size_t i = 0; i < response.size() - 2; i++) {
     resCheckSum += response[i];
   }
 
-  // Construct 16 bit value
   resCheckSum = (((resCheckSum << 1) & 0xFF00) | (resCheckSum & 0x7F)) | 0xC000;
-  std::cout << "[SERIAL] Response checksum: " << static_cast<int>(resCheckSum)
-            << "\n";
+
   return resCheckSum;
 }
 
-// For testing with ARDUINO
-// void Device::readFromSerial() {
+void Device::reApplyBits() {
 
-//   char c;
-//   while (state.load()) {
-//     int bytes = read(fd, &c, 1);
+  // Set MSBs to 1.
+  if (response[7] & 0x01) {
+    response[5] |= 0x80;
+  }
+  if (response[7] & 0x02) {
+    response[6] |= 0x80;
+  }
+}
 
-//     if (bytes <= 0)
-//       break;
-
-//     std::lock_guard<std::mutex> lock(mutex);
-
-//     // Clear on end of line
-//     if (c == '\n' || c == '\r') {
-//       // Convert to int
-//       if (!incomingWeight.empty()) {
-//         convertWeight();
-//         incomingWeight.clear();
-//       }
-//     } else {
-//       incomingWeight += c;
-//     }
-//   }
-// }
-
-void Device::setTime() {
+void Device::setTime(const int DELAY_MS) {
   while (state.load()) {
 
     // Used for measuring clock updates
@@ -175,6 +188,7 @@ void Device::setTime() {
 
     {
       // Aquire lock for updates.
+
       std::tm tm{};
       localtime_r(&t, &tm);
       std::lock_guard<std::mutex> lock(dataMtx);
@@ -192,15 +206,15 @@ void Device::setTime() {
 
     // Shorten the sleep if needed. (shutdown)
     while (state.load() && std::chrono::system_clock::now() < nextMinute) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_MS));
     }
   }
 }
 
-bool Device::connectToPort() {
+bool Device::connectToPort(const std::string &PORT) {
 
   // Open port before configuration
-  fd = open(PORT_A, O_RDWR | O_NOCTTY);
+  fd = open(PORT.c_str(), O_RDWR | O_NOCTTY);
   if (fd < 0) {
     std::cout << "[DEVICE] Port opening failed\n";
     return false;
@@ -212,19 +226,19 @@ bool Device::connectToPort() {
     return false;
   }
   // Terminal confiuration instance
-  configureSerial(pts, 2400);
+  configureSerial(pts);
 
   if (tcsetattr(fd, TCSANOW, &pts) != 0) {
     std::cout << "[DEVICE] Saving new setting not successful";
     return false;
   }
 
-  std::cout << "[DEVICE] " << PORT_A << " is open." << "\n";
+  std::cout << "[DEVICE] " << PORT << " is open." << "\n";
 
   return true;
 }
 
-void Device::configureSerial(termios &settings, int baud) {
+void Device::configureSerial(termios &settings) {
   // Control modes (how the data is packed)
   // Bit clearing (off)
   settings.c_cflag &= ~(PARENB | CSIZE | CRTSCTS);
@@ -249,6 +263,6 @@ void Device::configureSerial(termios &settings, int baud) {
   settings.c_cc[VTIME] = 10;
   settings.c_cc[VMIN] = 0;
 
-  cfsetispeed(&settings, baud);
-  cfsetospeed(&settings, baud);
+  cfsetispeed(&settings, B2400);
+  cfsetospeed(&settings, B2400);
 }
