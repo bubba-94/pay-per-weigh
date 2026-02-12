@@ -5,12 +5,13 @@
 Take over the Raspberry Monitor opening a terminal that renderes graphics [SDL2 Library](https://wiki.libsdl.org/SDL3/FrontPage).
 
 **Options:**
-- Boot terminal when Raspberry Pi starts
-- Fullscreen / borderless
-- Render a picture 
-- Render a QR code if possible, start with JPEG and later retrive endpoint from an API
-- Colors
-- Text
+- [] Boot terminal when Raspberry Pi starts
+- [x] Fullscreen / borderless
+- [x] Render a picture 
+- [x] Render a QR code if possible, start with JPEG and later retrive endpoint from an API
+- [x] Colors
+- [x] Text
+- [] Intergration with Swish API
 
 ## Building 
 
@@ -25,17 +26,31 @@ build.sh will build and compile executables for both PC and Pi 5 and gather them
 
 ### Testing on the PC 
 
-- `./run.sh` from root repo to run the application.
-- Testing aarch64 binary on PC `ssh -X user@pi` to forward x11 and open a SDL terminal on the desktop.
+- `./run.sh` from root repo to run the application (requires preinstalled libraries)
 
-To create a virtual pair of serial ports.
+- [Dockerfile here](Dockerfile) to run a container with installed libraries. 
+- Docker command after succesful build ([or Docker Hub image found here](https://hub.docker.com/r/moodin/pay-per-weigh)): 
+```bash
+docker pull moodin/pay-per-weigh:v1.0
+
+docker run -e DISPLAY=$DISPLAY \
+           -v /tmp/.X11-unix:/tmp/.X11-unix \
+           --name pay-per-weigh \
+           pay-per-weigh:v1.0
+```
+
+
+- To create a virtual pair of serial ports.
 ```bash
 socat \
   pty,raw,echo=0,link=/tmp/ttyRS232_A \
   pty,raw,echo=0,link=/tmp/ttyRS232_B &'
 ```
 
-### Test programs for writing analog value to serial
+### Test program for writing analog value to the Pi via Serial 
+
+- Use for testing the rendering. 
+
 ```cpp
 #include <Arduino.h>
 
@@ -79,10 +94,8 @@ int readPot() {
 }
 ```
 
-
-## Running
-
 ### Running on Pi
 
 - Binary with the library is needed
 - Run `scp -r bin/aarch64 user@pi:Programs/pay-per-weigh/` to copy binary and library to Pi.
+- Turn screen 90 degrees `wlr-randr --output HDMI-A-1 --transform 90`.
