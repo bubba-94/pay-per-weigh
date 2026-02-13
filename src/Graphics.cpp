@@ -119,6 +119,12 @@ void SDLManager::render(int newWeight, std::string_view clock) {
     SDL_RenderCopy(getRawRenderer(), getRawWeight(), NULL, &weightSpec.rect);
     break;
   }
+
+  SDL_RenderCopy(getRawRenderer(), getRawLogo(), NULL, &logoSpec.rect);
+  SDL_RenderCopy(getRawRenderer(), getRawTime(), NULL, &timeSpec.rect);
+
+  SDL_RenderPresent(getRawRenderer());
+  SDL_Delay(16);
 }
 
 void SDLManager::setup() {
@@ -259,7 +265,6 @@ bool SDLManager::checkWeight(int weight) {
   if (weight != previousWeight) {
     previousWeight = weight;
     std::cout << "[SDL] New weight: " << weight << "\n";
-    updateWeightTexture(weight);
     return true;
   }
 
@@ -274,7 +279,6 @@ bool SDLManager::checkTime(std::string_view currentTimepoint) {
     return false;
   } else {
     previousTimepoint = currentTimepoint;
-    updateTimeTexture(currentTimepoint);
     return true;
   }
 }
