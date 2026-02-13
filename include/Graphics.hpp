@@ -4,6 +4,7 @@
 /// C++ Standard Library
 #include <cstring>
 #include <ctime>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <queue>
@@ -17,25 +18,19 @@
 
 // Image paths ()
 #ifdef RPI
-constexpr const char *LOGO = "assets/img/pandema.png";
-constexpr const char *IMAGE = "assets/img/qr.png";
-constexpr const char *FONT = "assets/fonts/Lato-Light.ttf";
+// Windows specs for Raspberry Pi Monitor (standing)
+constexpr Uint16 WINDOW_WIDTH = 1080;
+constexpr Uint16 WINDOW_HEIGHT = 1920;
+constexpr Uint16 WEIGHT_CHAR_SIZE = 200;
 #else
 
-constexpr const char *ASSET_DIR_STR = ASSET_DIR;
-
-inline std::string assetPath(const std::string &relative) {
-  return std::string(ASSET_DIR_STR) + "/" + relative;
-}
-
-// Paths
-const std::string LOGO = assetPath("img/pandema.png");
-const std::string IMAGE = assetPath("img/qr.png");
-const std::string FONT = assetPath("fonts/Lato-Light.ttf");
+// Windows specs for Dekstop Application ()
+constexpr Uint16 WINDOW_WIDTH = 1920;
+constexpr Uint16 WINDOW_HEIGHT = 1080;
+constexpr Uint16 WEIGHT_CHAR_SIZE = 250;
 #endif
 
 // Surface sizes and limits
-constexpr Uint16 WEIGHT_CHAR_SIZE = 250;
 constexpr Uint16 WEIGHT_HEIGHT = 500;
 constexpr Uint16 IMAGE_WIDTH = 500;
 constexpr Uint16 IMAGE_HEIGHT = 500;
@@ -43,9 +38,7 @@ constexpr Uint16 LOGO_WIDTH = 242;
 constexpr Uint16 LOGO_HEIGHT = 48;
 constexpr Uint16 TIME_WIDTH = 300;
 constexpr Uint16 TIME_HEIGHT = 48;
-/// Windows specs for Raspberry Pi Monitor
-constexpr Uint16 WINDOW_WIDTH = 1920;
-constexpr Uint16 WINDOW_HEIGHT = 1080;
+
 // Max allowed weight
 constexpr int MAX_WEIGHT = 15001;
 
@@ -122,20 +115,22 @@ public:
   void render(int weight, std::string_view clock);
 
   /**
-   * @brief Event poller for desktop application.
-   *
-   * Polls event queue used for testing certain functionalities.
-   */
-  void pollEvents();
-
-  /**
    * @brief Checks the status of member variable status.
    *
    * @return state of SDL Window.
    */
   bool getStatus();
 
+  /**
+   * @brief Event poller for desktop application.
+   *
+   * Polls event queue used for testing certain functionalities.
+   */
+  void pollEvents();
+
 private:
+  enum class SurfaceState : uint8_t { MESSAGE, QR, WEIGHT } Surface;
+
   /**
    * @brief Helper function for SDL errors.
    *
@@ -146,7 +141,8 @@ private:
   /**
    * @brief Creates the texture from the provided surfaces.
    */
-  void createTextures();
+  void createTextures(const std::string &logoPath, const std::string &qrPath,
+                      const std::string &fontPath);
 
   /**
    * @brief Loads the specified IMG (.png) used for rendereing.
@@ -163,6 +159,14 @@ private:
    * @param startWeight weight to start with set to 0.
    */
   void loadFontSurface(const char *filepath);
+
+  /**
+   * @brief A constructor for the Welcome Message.
+   *
+   * @param messages
+   * Load the litreals into memory
+   */
+  void createWelcomeMessage(const std::vector<std::string> &messages);
 
   /**
    * @brief Updates weight texture if new weight has occured.
@@ -258,6 +262,16 @@ private:
                           Uint16 h);
 
   /**
+   * @brief
+   * Configuarion for the positioning of messages.
+   *
+   * @param strings Reference to literals defined in setup()
+   * @param vec reference to the SDLMessage configuration.
+   */
+  void setMessagePositionOf(const std::vector<std::string> &strings,
+                            std::vector<SDLMessage> &vec);
+
+  /**
    * @brief The length of new incoming weight.
    *
    * Checks the length and returns the right amount for setting a new font
@@ -289,6 +303,7 @@ private:
   SDL_Texture *getRawTime() const;
   SDL_Texture *getRawImage() const;
   SDL_Texture *getRawWeight() const;
+  SDL_Texture *getRawMessage(int index) const;
   TTF_Font *getRawFont() const;
 
   // MEMBER VARIABLES
@@ -302,12 +317,18 @@ private:
   bool status = true;
 
   /**
-   * @brief State of what image to show.
+   * @brief
    *
-   * Represents the image shown in the window. Presents a QR code if set to
    * true, presents a weight generated if set to false.
    */
-  bool showImage = true;
+  bool showWeight = false;
+
+  bool keyOverride = false;
+
+  /**
+   * @brief State of rendering, present welcome message first.
+   */
+  SurfaceState renderStates = SurfaceState::MESSAGE;
 
   /**
    * @brief Event handler for dekstop application.
@@ -328,6 +349,7 @@ private:
   SDLSpec qrSpec;     // Specs for the qr images presented (centered).
   SDLSpec weightSpec; // Specs for the weight presented (centered).
 
+  std::vector<SDLMessage> message;   // Vector for multiple lines.
   sdl_unique<SDL_Texture> logo;      // Texture for logo (always visible).
   sdl_unique<SDL_Texture> time;      // Texture for timestamp (always visible)
   sdl_unique<SDL_Texture> image;     // Texture for QR code.

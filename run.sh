@@ -1,6 +1,7 @@
-#! /bin/sh
+#!/bin/sh
 
 BIN_DIR=bin
 ARCH=x86
 
-cd $BIN_DIR/$ARCH && ./pay-per-weigh
+# Run binary from project root so relative paths work
+./$BIN_DIR/$ARCH/pay-per-weigh

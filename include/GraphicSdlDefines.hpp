@@ -62,4 +62,9 @@ typedef struct SDLSurfaceSpec {
   SDL_Rect rect;
 } SDLSpec;
 
+typedef struct SDLMessage {
+  sdl_unique<SDL_Texture> texture;
+  SDLSpec spec;
+} SDLMessage;
+
 #endif
