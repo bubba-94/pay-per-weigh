@@ -34,9 +34,10 @@ build.sh will build and compile executables for both PC and Pi 5 and gather them
 docker pull moodin/pay-per-weigh:v1.0
 
 docker run -e DISPLAY=$DISPLAY \
+           -it \
            -v /tmp/.X11-unix:/tmp/.X11-unix \
            --name pay-per-weigh \
-           pay-per-weigh:v1.0
+           moodin/pay-per-weigh:v1.0
 ```
 
 
