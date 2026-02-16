@@ -88,26 +88,11 @@ void SDLManager::render(int newWeight, std::string_view clock) {
 
   switch (renderStates) {
 
-  // Present welcome message
-  case SurfaceState::MESSAGE:
-    // Present QR when future timer and override is not active.
-    if (!keyOverride && newWeight >= 1500) {
-      renderStates = SurfaceState::QR;
-    }
-
-    // Render welcome message first.
-    for (size_t i = 0; i < message.size(); ++i) {
-      SDL_RenderCopy(getRawRenderer(), getRawMessage(i), NULL,
-                     &message[i].spec.rect);
-    }
-    break;
-
-  // Present QR Code for payment method
   case SurfaceState::QR:
 
     // Message == IDLE
     if (!keyOverride && newWeight < 1500) {
-      renderStates = SurfaceState::MESSAGE;
+      renderStates = SurfaceState::WELCOME_MESSAGE;
     }
 
     // Commence payment thread
@@ -116,11 +101,47 @@ void SDLManager::render(int newWeight, std::string_view clock) {
     SDL_RenderCopy(getRawRenderer(), getRawImage(), NULL, &qrSpec.rect);
     break;
 
-  // Weight presenter
-  // Will be set when payment is valid or keyOverride is true
+  // Render welcome message
+  case SurfaceState::WELCOME_MESSAGE:
+
+    if (!messageTimer && newWeight >= 1500) {
+      messageStart = std::chrono::steady_clock::now();
+      messageTimer = true;
+    }
+
+    {
+      auto elapsed = std::chrono::steady_clock::now() - messageStart;
+
+      // Render QR when timer is elapsed and override is not active.
+      if (!keyOverride && newWeight >= 1500 &&
+          elapsed >= std::chrono::milliseconds(5000)) {
+        messageTimer = false;
+        renderStates = SurfaceState::QR;
+      }
+    }
+
+    // Render welcome message first at index 0 and 1
+    for (size_t i = 0; i < 2; ++i) {
+      SDL_RenderCopy(getRawRenderer(), getRawMessage(i), NULL,
+                     &message[i].spec.rect);
+    }
+    break;
+
+  case SurfaceState::PROCESSING_PAYMENT:
+    for (size_t i = 0; i < 2; ++i) {
+      // Render index 2 and 3.
+      SDL_RenderCopy(getRawRenderer(), getRawMessage(i), NULL,
+                     &message[i + 2].spec.rect);
+    }
+
+    // Render WEIGHT if PROCESSING is successful
+    renderStates = SurfaceState::WEIGHT;
+    break;
+
+  // Render weight surface when payment is succesful or admin mode is active.
   case SurfaceState::WEIGHT:
     if (!keyOverride) {
-      renderStates = SurfaceState::MESSAGE;
+      renderStates = SurfaceState::WELCOME_MESSAGE;
     }
 
     SDL_RenderCopy(getRawRenderer(), getRawWeight(), NULL, &weightSpec.rect);
@@ -136,12 +157,13 @@ void SDLManager::render(int newWeight, std::string_view clock) {
 
 void SDLManager::setup() {
 
-  const std::vector<std::string> MESSAGES = {"WELCOME", "PAY-PER-WEIGH"};
+  const std::vector<std::string> MESSAGES = {"WELCOME", "PAY-PER-WEIGH",
+                                             "PROCESSING", "PAYMENT"};
 
   createTextures("assets/img/pandema.png", "assets/img/qr.png",
                  "assets/fonts/Lato-Light.ttf");
 
-  createWelcomeMessage(MESSAGES);
+  createMessages(MESSAGES);
 
   // Set surface framings to default
   setSurfacePosition(&timeSpec, SDLGraphicsCfg::TIME_X, SDLGraphicsCfg::TIME_Y,
@@ -154,8 +176,8 @@ void SDLManager::setup() {
                      weightWidth, SDLGraphicsCfg::WEIGHT_HEIGHT);
 }
 
-void SDLManager::printErrMsg(const char *errMsg) {
-  std::cerr << "SDL_Error occured: " << errMsg << "\n";
+void SDLManager::printErrMsg(const std::string &errMsg) {
+  std::cerr << "SDL_Error occured: " << errMsg.c_str() << "\n";
 }
 
 void SDLManager::createTextures(const std::string &logoPath,
@@ -188,30 +210,30 @@ void SDLManager::createTextures(const std::string &logoPath,
 }
 
 // Imaging
-void SDLManager::loadSurfaceOfIMG(const char *filepath) {
-  surface.reset(IMG_Load(filepath));
+void SDLManager::loadSurfaceOfIMG(const std::string &filepath) {
+  surface.reset(IMG_Load(filepath.c_str()));
 
   if (!surface)
     printErrMsg(SDL_GetError());
 }
 
-void SDLManager::loadFontSurface(const char *filepath) {
+void SDLManager::loadFontSurface(const std::string &filepath) {
 
-  font.reset(TTF_OpenFont(filepath, 250));
+  font.reset(TTF_OpenFont(filepath.c_str(), 250));
 
   if (!font)
     printErrMsg(SDL_GetError());
 
-  const char *value = "0";
+  const std::string VALUE = "0";
 
-  surface.reset(TTF_RenderUTF8_Solid(getRawFont(), value, weightSpec.color));
+  surface.reset(
+      TTF_RenderUTF8_Solid(getRawFont(), VALUE.c_str(), weightSpec.color));
 
   if (!surface)
     printErrMsg(SDL_GetError());
 }
 
-void SDLManager::createWelcomeMessage(
-    const std::vector<std::string> &messages) {
+void SDLManager::createMessages(const std::vector<std::string> &messages) {
   message.resize(messages.size());
 
   setMessagePositionOf(messages, message);

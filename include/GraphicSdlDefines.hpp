@@ -24,7 +24,6 @@
 namespace SDLGraphicsCfg {
 // Image paths ()
 #ifdef RPI
-#include "PinState.hpp"
 // Windows specs for Raspberry Pi Monitor (standing)
 constexpr Uint16 WINDOW_WIDTH = 1080;
 constexpr Uint16 WINDOW_HEIGHT = 1920;

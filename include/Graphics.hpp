@@ -3,6 +3,9 @@
 
 // File to keep this file
 #include "GraphicSdlDefines.hpp"
+#ifdef RPI
+#include "PinState.hpp"
+#endif
 
 /**
  *
@@ -74,14 +77,19 @@ public:
   void pollEvents();
 
 private:
-  enum class SurfaceState : uint8_t { MESSAGE, QR, WEIGHT } Surface;
+  enum class SurfaceState : uint8_t {
+    WELCOME_MESSAGE,
+    QR,
+    WEIGHT,
+    PROCESSING_PAYMENT
+  } Surface;
 
   /**
    * @brief Helper function for SDL errors.
    *
    * @param errMsg message generated from SDL_GetError().
    */
-  void printErrMsg(const char *errMsg);
+  void printErrMsg(const std::string &errMsg);
 
   /**
    * @brief Creates the texture from the provided surfaces.
@@ -92,7 +100,7 @@ private:
   /**
    * @brief Loads the specified IMG (.png) used for rendereing.
    */
-  void loadSurfaceOfIMG(const char *filepath);
+  void loadSurfaceOfIMG(const std::string &filepath);
 
   /**
    * @brief Loads the specified TTF (.ttf) used for rendering.
@@ -103,7 +111,7 @@ private:
    * @param filepath file path to the font (.ttf).
    * @param startWeight weight to start with set to 0.
    */
-  void loadFontSurface(const char *filepath);
+  void loadFontSurface(const std::string &filepath);
 
   /**
    * @brief A constructor for the Welcome Message.
@@ -111,7 +119,7 @@ private:
    * @param messages
    * Load the litreals into memory
    */
-  void createWelcomeMessage(const std::vector<std::string> &messages);
+  void createMessages(const std::vector<std::string> &messages);
 
   /**
    * @brief Updates weight texture if new weight has occured.
@@ -137,6 +145,16 @@ private:
    * @brief update the timeString to present a new time
    */
   void updateTimestring();
+
+  /**
+   * @brief Steady clock timer
+   *
+   * @param milliSeconds
+   * Amount of milliseconds until timer is finished.
+   *
+   * @return true when @param milliSeconds has passed.
+   */
+  bool timer(int milliSeconds);
 
   /**
    * @brief Function for determining if a weight update is needed.
@@ -275,9 +293,20 @@ private:
   bool keyOverride = false;
 
   /**
+   * @brief Bool for rendering the QR after WELCOME message
+   */
+  bool messageTimer = false;
+
+  /**
+   * @brief
+   * Variable for storing the time when messageTimer was set.
+   */
+  std::chrono::steady_clock::time_point messageStart;
+
+  /**
    * @brief State of rendering, present welcome message first.
    */
-  SurfaceState renderStates = SurfaceState::MESSAGE;
+  SurfaceState renderStates = SurfaceState::WELCOME_MESSAGE;
 
   int weightWidth = 0; // Width of font (dynamic during runtime).
   int weightX = 0;     // X cursor of font (dynamic during runtime).
