@@ -18,8 +18,9 @@ SDLManager::SDLManager(const std::string &windowTitle) {
 
   // Create window from specifics
   window.reset(SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED,
-                                SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH,
-                                WINDOW_HEIGHT, windowFlags));
+                                SDL_WINDOWPOS_CENTERED,
+                                SDLGraphicsCfg::WINDOW_WIDTH,
+                                SDLGraphicsCfg::WINDOW_HEIGHT, windowFlags));
 
   int renderFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
   if (!window)
@@ -40,6 +41,7 @@ SDLManager::SDLManager(const std::string &windowTitle) {
 
   setup();
 }
+
 SDLManager::~SDLManager() {
   std::cout << "[SDL] Application being shutdown...." << "\n";
 
@@ -88,7 +90,7 @@ void SDLManager::render(int newWeight, std::string_view clock) {
 
   // Present welcome message
   case SurfaceState::MESSAGE:
-    // If conditions are met and timer is over present QR. (IR Laser)
+    // Present QR when future timer and override is not active.
     if (!keyOverride && newWeight >= 1500) {
       renderStates = SurfaceState::QR;
     }
@@ -102,9 +104,14 @@ void SDLManager::render(int newWeight, std::string_view clock) {
 
   // Present QR Code for payment method
   case SurfaceState::QR:
+
+    // Message == IDLE
     if (!keyOverride && newWeight < 1500) {
       renderStates = SurfaceState::MESSAGE;
     }
+
+    // Commence payment thread
+
     // If Payment done renderState = SurfaceState::WEIGHT
     SDL_RenderCopy(getRawRenderer(), getRawImage(), NULL, &qrSpec.rect);
     break;
@@ -137,11 +144,14 @@ void SDLManager::setup() {
   createWelcomeMessage(MESSAGES);
 
   // Set surface framings to default
-  setSurfacePosition(&timeSpec, TIME_X, TIME_Y, TIME_WIDTH, TIME_HEIGHT);
-  setSurfacePosition(&qrSpec, IMAGE_X, IMAGE_Y, IMAGE_WIDTH, IMAGE_HEIGHT);
-  setSurfacePosition(&logoSpec, LOGO_X, LOGO_Y, LOGO_WIDTH, LOGO_HEIGHT);
-  setSurfacePosition(&weightSpec, weightX, WEIGHT_Y, weightWidth,
-                     WEIGHT_HEIGHT);
+  setSurfacePosition(&timeSpec, SDLGraphicsCfg::TIME_X, SDLGraphicsCfg::TIME_Y,
+                     SDLGraphicsCfg::TIME_WIDTH, SDLGraphicsCfg::TIME_HEIGHT);
+  setSurfacePosition(&qrSpec, SDLGraphicsCfg::IMAGE_X, SDLGraphicsCfg::IMAGE_Y,
+                     SDLGraphicsCfg::IMAGE_WIDTH, SDLGraphicsCfg::IMAGE_HEIGHT);
+  setSurfacePosition(&logoSpec, SDLGraphicsCfg::LOGO_X, SDLGraphicsCfg::LOGO_Y,
+                     SDLGraphicsCfg::LOGO_WIDTH, SDLGraphicsCfg::LOGO_HEIGHT);
+  setSurfacePosition(&weightSpec, weightX, SDLGraphicsCfg::WEIGHT_Y,
+                     weightWidth, SDLGraphicsCfg::WEIGHT_HEIGHT);
 }
 
 void SDLManager::printErrMsg(const char *errMsg) {
@@ -225,8 +235,8 @@ void SDLManager::updateWeightTexture(int newWeight) {
   std::string value = std::to_string(newWeight);
 
   setWeightWidth(newWeight);
-  setSurfacePosition(&weightSpec, weightX, WEIGHT_Y, weightWidth,
-                     WEIGHT_HEIGHT);
+  setSurfacePosition(&weightSpec, weightX, SDLGraphicsCfg::WEIGHT_Y,
+                     weightWidth, SDLGraphicsCfg::WEIGHT_HEIGHT);
 
   surface.reset(
       TTF_RenderUTF8_Blended(getRawFont(), value.c_str(), weightSpec.color));
@@ -258,7 +268,7 @@ bool SDLManager::checkWeight(int weight) {
   // Set when parameters match
   static int previousWeight{};
 
-  if (weight > MAX_WEIGHT) {
+  if (weight > SDLGraphicsCfg::MAX_WEIGHT) {
     return false;
   }
 
@@ -368,7 +378,7 @@ void SDLManager::setMessagePositionOf(const std::vector<std::string> &strings,
   totalHeight += (vec.size() - 1) * lineSpacing;
 
   // Start drawing from top so that messages are vertically centered
-  int startY = ((WINDOW_HEIGHT - totalHeight) / 2) - 200;
+  int startY = ((SDLGraphicsCfg::WINDOW_HEIGHT - totalHeight) / 2) - 200;
 
   for (size_t i = 0; i < vec.size(); ++i) {
     if (i == 0) {
@@ -384,7 +394,8 @@ void SDLManager::setMessagePositionOf(const std::vector<std::string> &strings,
     vec[i].spec.rect.h = charHeight;
 
     // Horizontal centering
-    vec[i].spec.rect.x = (WINDOW_WIDTH - vec[i].spec.rect.w) / 2;
+    vec[i].spec.rect.x =
+        (SDLGraphicsCfg::WINDOW_WIDTH - vec[i].spec.rect.w) / 2;
 
     // Vertical stacking
     vec[i].spec.rect.y = startY;
@@ -406,12 +417,13 @@ int SDLManager::checkLengthOfWeight(int weight) {
 void SDLManager::setWeightWidth(int weight) {
   int length = checkLengthOfWeight(weight);
 
-  weightWidth = WEIGHT_CHAR_SIZE * length;
+  weightWidth = SDLGraphicsCfg::WEIGHT_CHAR_SIZE * length;
 
-  weightX = ((WINDOW_WIDTH / 2) + weightWidth / 2) - weightWidth;
+  weightX =
+      ((SDLGraphicsCfg::WINDOW_WIDTH / 2) + weightWidth / 2) - weightWidth;
 
-  setSurfacePosition(&weightSpec, weightX, WEIGHT_Y, weightWidth,
-                     WEIGHT_HEIGHT);
+  setSurfacePosition(&weightSpec, weightX, SDLGraphicsCfg::WEIGHT_Y,
+                     weightWidth, SDLGraphicsCfg::WEIGHT_HEIGHT);
 }
 
 SDL_Window *SDLManager::getRawWindow() const { return window.get(); }

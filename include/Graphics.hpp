@@ -1,63 +1,8 @@
 #ifndef GRAPHICS_HPP
 #define GRAPHICS_HPP
 
-/// C++ Standard Library
-#include <cstring>
-#include <ctime>
-#include <filesystem>
-#include <iostream>
-#include <memory>
-#include <queue>
-#include <string>
-#ifdef RPI
-#include "PinState.hpp"
-#endif
-
 // File to keep this file
 #include "GraphicSdlDefines.hpp"
-
-// Image paths ()
-#ifdef RPI
-// Windows specs for Raspberry Pi Monitor (standing)
-constexpr Uint16 WINDOW_WIDTH = 1080;
-constexpr Uint16 WINDOW_HEIGHT = 1920;
-constexpr Uint16 WEIGHT_CHAR_SIZE = 200;
-#else
-
-// Windows specs for Dekstop Application ()
-constexpr Uint16 WINDOW_WIDTH = 1920;
-constexpr Uint16 WINDOW_HEIGHT = 1080;
-constexpr Uint16 WEIGHT_CHAR_SIZE = 250;
-#endif
-
-// Surface sizes and limits
-constexpr Uint16 WEIGHT_HEIGHT = 500;
-constexpr Uint16 IMAGE_WIDTH = 500;
-constexpr Uint16 IMAGE_HEIGHT = 500;
-constexpr Uint16 LOGO_WIDTH = 242;
-constexpr Uint16 LOGO_HEIGHT = 48;
-constexpr Uint16 TIME_WIDTH = 300;
-constexpr Uint16 TIME_HEIGHT = 48;
-
-// Max allowed weight
-constexpr int MAX_WEIGHT = 15001;
-
-// Weight position (centered)
-constexpr Uint16 WEIGHT_Y =
-    ((WINDOW_HEIGHT / 2) + WEIGHT_HEIGHT / 2) - WEIGHT_HEIGHT;
-
-// Image position (centered)
-constexpr Uint16 IMAGE_X = ((WINDOW_WIDTH / 2) + IMAGE_WIDTH / 2) - IMAGE_WIDTH;
-constexpr Uint16 IMAGE_Y =
-    (WINDOW_HEIGHT / 2) + (IMAGE_HEIGHT / 2) - IMAGE_HEIGHT;
-
-// Logo position (bottom right) with spacing
-constexpr Uint16 LOGO_X = WINDOW_WIDTH - LOGO_WIDTH - 50;
-constexpr Uint16 LOGO_Y = WINDOW_HEIGHT - LOGO_HEIGHT - 50;
-
-// Time position (bottom left)
-constexpr Uint16 TIME_X = 50;
-constexpr Uint16 TIME_Y = WINDOW_HEIGHT - TIME_HEIGHT - 50;
 
 /**
  *
@@ -306,7 +251,7 @@ private:
   SDL_Texture *getRawMessage(int index) const;
   TTF_Font *getRawFont() const;
 
-  // MEMBER VARIABLES
+  // Attributes
 
   /**
    * @brief The status of SDL Windows.
@@ -323,21 +268,16 @@ private:
    */
   bool showWeight = false;
 
+  /**
+   * @brief
+   * A boolean that is determined from the PinState of the Key Switch.
+   */
   bool keyOverride = false;
 
   /**
    * @brief State of rendering, present welcome message first.
    */
   SurfaceState renderStates = SurfaceState::MESSAGE;
-
-  /**
-   * @brief Event handler for dekstop application.
-   *
-   * Queue for handling events made on the SDL Application Window.
-   * Only used on x86 build.
-   */
-  std::queue<SDL_Event> events;
-  SDL_Event event; // Single event happening.
 
   int weightWidth = 0; // Width of font (dynamic during runtime).
   int weightX = 0;     // X cursor of font (dynamic during runtime).
@@ -358,6 +298,15 @@ private:
   sdl_unique<TTF_Font> font;         // Font.
   sdl_unique<SDL_Renderer> renderer; // Renderer.
   sdl_unique<SDL_Window> window;     // Window.
+
+  /**
+   * @brief Event handler for dekstop application.
+   *
+   * Queue for handling events made on the SDL Application Window.
+   * Only used on x86 build.
+   */
+  std::queue<SDL_Event> events;
+  SDL_Event event; // Single event happening.
 };
 
 #endif
