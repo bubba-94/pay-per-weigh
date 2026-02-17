@@ -3,6 +3,7 @@ build/
 cmake-build-*/
 out/
 lib/
+libs/
 
 # Doxygen output
 docs/html
