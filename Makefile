@@ -9,4 +9,4 @@ docs-clean:
 	rm -rf docs/html docs/latex
 
 # Clean + regenerate in one command
-regen-docs: docs-clean docsH
+regen-docs: docs-clean docs

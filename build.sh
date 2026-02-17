@@ -33,4 +33,10 @@ cmake -DRPI=ON \
 cmake --build .
 echo "Build for aarch64 done."
 
-cd "$ROOT_DIR" || exit 1
+
+cd "$ROOT_DIR" 
+
+# Generate changes to Doxyfile
+make regen-docs
+
+exit 1
