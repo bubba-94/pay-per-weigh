@@ -4,6 +4,10 @@ cmake-build-*/
 out/
 lib/
 
+# Doxygen output
+docs/html
+docs/latex
+
 # --- CMake generated files ---
 CMakeFiles/
 CMakeCache.txt
