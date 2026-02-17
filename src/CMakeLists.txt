@@ -1,7 +1,7 @@
 add_library(${ARCHIVE}
     STATIC 
        Graphics.cpp
-       QRManager.cpp
+       Controller.cpp
        Device.cpp
        Gpio.cpp
 )

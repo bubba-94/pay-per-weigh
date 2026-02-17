@@ -1,10 +1,10 @@
-#ifndef QRMANAGER_HPP
-#define QRMANAGER_HPP
+#ifndef CONTROLLER_HPP
+#define CONTROLLER_HPP
 
 #include <iostream>
 #include <vector>
 
-class QRManager {
+class Controller {
 private:
 public:
 };
