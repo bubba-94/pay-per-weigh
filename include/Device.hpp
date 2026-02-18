@@ -23,6 +23,8 @@
 #include <mutex>
 #include <thread>
 
+#include "external-libs/httplib.h"
+
 /**
  * @class Device
  *

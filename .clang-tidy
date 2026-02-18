@@ -1,9 +1,13 @@
+---
 Checks: >
   readability-identifier-naming,
   performance-*,
   clang-analyzer-*,
-
+  -clang-analyzer-alpha.*   # disable experimental slow checks
 WarningsAsErrors: '*'
+
+# Exclude external libraries (negative lookahead regex)
+HeaderFilterRegex: '^(?!/home/moodin/coding/internship/pay-per-weigh/include/external-libs/).*'
 
 CheckOptions:
   - key:             readability-identifier-naming.ClassCase
@@ -18,4 +22,5 @@ CheckOptions:
     value:           UPPER_CASE
   - key:             readability-identifier-naming.MacroCase
     value:           UPPER_CASE
+
 FormatStyle: file
