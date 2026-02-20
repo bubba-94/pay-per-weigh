@@ -38,8 +38,8 @@ constexpr Uint16 WEIGHT_CHAR_SIZE = 250;
 
 // Surface sizes and limits
 constexpr Uint16 WEIGHT_HEIGHT = 500;
-constexpr Uint16 IMAGE_WIDTH = 500;
-constexpr Uint16 IMAGE_HEIGHT = 500;
+constexpr Uint16 IMAGE_WIDTH = 300;
+constexpr Uint16 IMAGE_HEIGHT = 300;
 constexpr Uint16 LOGO_WIDTH = 242;
 constexpr Uint16 LOGO_HEIGHT = 48;
 constexpr Uint16 TIME_WIDTH = 300;
