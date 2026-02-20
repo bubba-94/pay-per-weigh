@@ -6,6 +6,9 @@ lib/
 libs/
 external-libs/
 
+# Certificates
+certs/  
+
 # Doxygen output
 docs/html
 docs/latex
