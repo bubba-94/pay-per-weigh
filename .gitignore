@@ -5,8 +5,7 @@ out/
 lib/
 libs/
 external-libs/
-test/byte-read/
-test/network/
+test/
 
 # Certificates
 certs/
