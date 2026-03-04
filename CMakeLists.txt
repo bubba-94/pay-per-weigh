@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 project(PAY-PER-WEIGH LANGUAGES CXX)
 
+set(DEBUG_FLAGS "-Wall -Wextra -g")
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DEBUG_FLAGS}")
 
 if(RPI)
     add_compile_definitions(RPI)
@@ -167,6 +168,7 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
     message(STATUS ${ENDGREEN})
 endif() 
 
+find_package(nlohmann_json REQUIRED)
 # Target output
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_DIR})
@@ -181,6 +183,7 @@ add_executable(pay-per-weigh main.cpp)
 # Link the library defined in src/CMakeLists.txt
 target_link_libraries(pay-per-weigh PRIVATE 
         ${ARCHIVE}
+        nlohmann_json::nlohmann_json
         )
 
 if(RPI)

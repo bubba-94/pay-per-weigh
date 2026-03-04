@@ -1,7 +1,7 @@
 add_library(${ARCHIVE}
     STATIC 
        Graphics.cpp
-       Controller.cpp
+       Client.cpp
        Device.cpp
        Gpio.cpp
 )

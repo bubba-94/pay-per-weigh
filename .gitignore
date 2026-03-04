@@ -5,10 +5,11 @@ out/
 lib/
 libs/
 external-libs/
+test/byte-read/
+test/network/
 
 # Certificates
-certs/  
-
+certs/
 # Doxygen output
 docs/html
 docs/latex
