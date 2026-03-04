@@ -2,7 +2,7 @@
 #define GRAPHICS_HPP
 
 // File to keep this file
-#include "GraphicSdlDefines.hpp"
+#include "GraphicTypes.hpp"
 #ifdef RPI
 #include "PinState.hpp"
 #endif
