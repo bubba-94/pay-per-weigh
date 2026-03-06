@@ -44,7 +44,7 @@ public:
    * Check for changes on GPIO pins and applies them to internal bools,
    * for manipulating certain states.
    */
-  void poll(const PinState &state);
+  void poll(const PinState &state, bool paymentStatus);
 #endif
 
   /**
@@ -221,7 +221,7 @@ private:
    * @param w width of texture.
    * @param h height of texture.
    */
-  void setSurfacePosition(SDLSpec *surface, Uint16 x, Uint16 y, Uint16 w,
+  void setSurfacePosition(SDLSurfaceSpec *surface, Uint16 x, Uint16 y, Uint16 w,
                           Uint16 h);
 
   /**
@@ -292,16 +292,15 @@ private:
    */
   bool keyOverride = false;
 
-  /**
-   * @brief Bool for rendering the QR after WELCOME message
-   */
-  bool messageTimer = false;
+  /// @brief Override and present weight when true
+  bool successfulPayment = false;
 
-  /**
-   * @brief
-   * Variable for storing the time when messageTimer was set.
-   */
-  std::chrono::steady_clock::time_point messageStart;
+  /// @brief Another bool to stop evaluating previous payment
+  bool paymentReceived = false;
+
+  StateTimer weightTimer;
+  StateTimer paymentProcessTimer;
+  StateTimer messageTimer;
 
   /**
    * @brief State of rendering, present welcome message first.
@@ -313,10 +312,10 @@ private:
 
   std::string timepoint; // Store the incoming timepoint
 
-  SDLSpec logoSpec;   // Specs for the logo presented (bottom right).
-  SDLSpec timeSpec;   // Specs for the time presented (bottom left).
-  SDLSpec qrSpec;     // Specs for the qr images presented (centered).
-  SDLSpec weightSpec; // Specs for the weight presented (centered).
+  SDLSurfaceSpec logoSpec;   // Specs for the logo presented (bottom right).
+  SDLSurfaceSpec timeSpec;   // Specs for the time presented (bottom left).
+  SDLSurfaceSpec qrSpec;     // Specs for the qr images presented (centered).
+  SDLSurfaceSpec weightSpec; // Specs for the weight presented (centered).
 
   std::vector<SDLMessage> message;   // Vector for multiple lines.
   sdl_unique<SDL_Texture> logo;      // Texture for logo (always visible).

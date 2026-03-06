@@ -20,9 +20,10 @@ else()
     set(ARCHIVE _ppw-x86)
 endif()
 
+set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/${ARCH}")
+
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
 
-    set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/${ARCH}")
 
     message(STATUS ${STARTYELLOW})
     

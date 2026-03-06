@@ -27,6 +27,8 @@ build.sh will build and compile executables for both PC and Pi 5 and gather them
 
 ### Testing on the PC 
 
+- Link for testing against [server](https://github.com/bubba-94/swish-mock/blob/main/README.md)
+
 - `./run.sh` from root repo to run the application (requires preinstalled libraries)
 
 - [Dockerfile here](Dockerfile) to run a container with installed libraries. 
