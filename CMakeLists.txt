@@ -24,6 +24,10 @@ set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/${ARCH}")
 
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
 
+<<<<<<< HEAD
+=======
+    set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/${ARCH}")
+>>>>>>> 334ebcb (Add a small payment method for updating the screen (#3))
 
     message(STATUS ${STARTYELLOW})
     
