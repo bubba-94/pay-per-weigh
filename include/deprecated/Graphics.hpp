@@ -302,11 +302,8 @@ private:
   Graphics::StateTimer paymentProcessTimer;
   Graphics::StateTimer messageTimer;
 
-  /**
-   * @brief
-   * Variable for storing the time when messageTimer was set.
-   */
-  std::chrono::steady_clock::time_point messageStart;
+  /// @brief Another bool to stop evaluating previous payment
+  bool paymentReceived = false;
 
   /**
    * @brief State of rendering, present welcome message first.

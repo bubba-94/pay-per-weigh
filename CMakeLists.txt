@@ -24,10 +24,6 @@ set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/${ARCH}")
 
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
 
-<<<<<<< HEAD
-=======
-    set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/${ARCH}")
->>>>>>> 334ebcb (Add a small payment method for updating the screen (#3))
 
     message(STATUS ${STARTYELLOW})
     
@@ -188,7 +184,14 @@ add_executable(pay-per-weigh main.cpp)
 # Link the library defined in src/CMakeLists.txt
 target_link_libraries(pay-per-weigh PRIVATE 
         ${ARCHIVE}
+<<<<<<< HEAD
         nlohmann_json::nlohmann_json
+=======
+<<<<<<< HEAD
+=======
+        nlohmann_json::nlohmann_json
+>>>>>>> 11b8a09 (Feat/payment method (#4))
+>>>>>>> 4f54008 (Feat/payment method (#4))
         )
 
 if(RPI)
