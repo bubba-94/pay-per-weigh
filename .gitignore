@@ -3,6 +3,15 @@ build/
 cmake-build-*/
 out/
 lib/
+libs/
+external-libs/
+test/
+
+# Certificates
+certs/
+# Doxygen output
+docs/html
+docs/latex
 
 # --- CMake generated files ---
 CMakeFiles/

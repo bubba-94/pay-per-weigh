@@ -19,12 +19,15 @@ Take over the Raspberry Monitor opening a terminal that renderes graphics [SDL2 
 
 - Sysroots of target headers
 - Pre installed libraries SDL2, SDL2 image, SDL2 ttf.
+- Using Drogon as web Framework.
 
 build.sh will build and compile executables for both PC and Pi 5 and gather them under separate architecture folders under bin/
 
 ## Testing
 
 ### Testing on the PC 
+
+- Link for testing against [server](https://github.com/bubba-94/swish-mock/blob/main/README.md)
 
 - `./run.sh` from root repo to run the application (requires preinstalled libraries)
 

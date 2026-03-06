@@ -53,11 +53,15 @@ SDLManager::~SDLManager() {
 }
 
 #ifdef RPI
-void SDLManager::poll(const PinState &state) {
+void SDLManager::poll(const PinState &state, bool paymentStatus) {
 
   // Exit on request
   if (state.shutdownRequested) {
     status = false;
+  }
+
+  if (paymentStatus && !successfulPayment) {
+    successfulPayment = true;
   }
 
   // Key switches the image shown
@@ -75,6 +79,7 @@ bool SDLManager::getStatus() { return status; }
 
 void SDLManager::render(int newWeight, std::string_view clock) {
 
+  SDL_SetRenderDrawColor(getRawRenderer(), 0, 0, 0, 255);
   SDL_RenderClear(getRawRenderer());
 
   bool weightCheck = checkWeight(newWeight);
@@ -94,57 +99,85 @@ void SDLManager::render(int newWeight, std::string_view clock) {
     if (!keyOverride && newWeight < 1500) {
       renderStates = SurfaceState::WELCOME_MESSAGE;
     }
+    if (successfulPayment && !paymentReceived) {
+      renderStates = SurfaceState::PROCESSING_PAYMENT;
+      // If Payment done renderState = SurfaceState::WEIGHT
+    }
 
-    // Commence payment thread
-
-    // If Payment done renderState = SurfaceState::WEIGHT
     SDL_RenderCopy(getRawRenderer(), getRawImage(), NULL, &qrSpec.rect);
     break;
 
   // Render welcome message
   case SurfaceState::WELCOME_MESSAGE:
 
-    if (!messageTimer && newWeight >= 1500) {
-      messageStart = std::chrono::steady_clock::now();
-      messageTimer = true;
+    if (!messageTimer.state) {
+      messageTimer.tp = Clock::now();
+      messageTimer.state = true;
     }
 
-    {
-      auto elapsed = std::chrono::steady_clock::now() - messageStart;
-
-      // Render QR when timer is elapsed and override is not active.
-      if (!keyOverride && newWeight >= 1500 &&
-          elapsed >= std::chrono::milliseconds(5000)) {
-        messageTimer = false;
-        renderStates = SurfaceState::QR;
-      }
-    }
-
-    // Render welcome message first at index 0 and 1
     for (size_t i = 0; i < 2; ++i) {
       SDL_RenderCopy(getRawRenderer(), getRawMessage(i), NULL,
                      &message[i].spec.rect);
     }
+
+    if (!keyOverride && newWeight >= 1500 &&
+        Clock::now() - messageTimer.tp >= std::chrono::seconds(5)) {
+
+      messageTimer.state = false;
+      renderStates = SurfaceState::QR;
+    }
     break;
 
   case SurfaceState::PROCESSING_PAYMENT:
-    for (size_t i = 0; i < 2; ++i) {
-      // Render index 2 and 3.
-      SDL_RenderCopy(getRawRenderer(), getRawMessage(i), NULL,
-                     &message[i + 2].spec.rect);
+    if (!paymentProcessTimer.state) {
+      paymentProcessTimer.tp = Clock::now();
+      paymentProcessTimer.state = true;
     }
 
-    // Render WEIGHT if PROCESSING is successful
-    renderStates = SurfaceState::WEIGHT;
+    paymentProcessTimer.elapsed = Clock::now() - paymentProcessTimer.tp;
+
+    // Render "PROCESSING PAYMENT"
+    for (size_t i = 2; i < message.size(); ++i) {
+      SDL_RenderCopy(getRawRenderer(), getRawMessage(i), NULL,
+                     &message[i].spec.rect);
+    }
+
+    if (paymentProcessTimer.elapsed >= std::chrono::seconds(3)) {
+      paymentProcessTimer.state = false;
+      renderStates = SurfaceState::WEIGHT;
+    }
+
     break;
 
   // Render weight surface when payment is succesful or admin mode is active.
   case SurfaceState::WEIGHT:
-    if (!keyOverride) {
+    if (keyOverride) {
+      SDL_RenderCopy(getRawRenderer(), getRawWeight(), NULL, &weightSpec.rect);
+    }
+
+    if (!keyOverride && !successfulPayment) {
+      renderStates = SurfaceState::WELCOME_MESSAGE;
+      break;
+    }
+
+    if (!weightTimer.state) {
+      weightTimer.tp = Clock::now();
+      weightTimer.state = true;
+    }
+
+    weightTimer.elapsed = Clock::now() - weightTimer.tp;
+
+    // Only start clock when payment is successful,
+    // to view the weight for a certain amount of seconds
+    if (weightTimer.elapsed < std::chrono::seconds(10)) {
+      SDL_RenderCopy(getRawRenderer(), getRawWeight(), NULL, &weightSpec.rect);
+    } else {
+      weightTimer.state = false;
+      successfulPayment = false;
+      paymentReceived = true;
       renderStates = SurfaceState::WELCOME_MESSAGE;
     }
 
-    SDL_RenderCopy(getRawRenderer(), getRawWeight(), NULL, &weightSpec.rect);
     break;
   }
 
@@ -307,7 +340,7 @@ bool SDLManager::checkWeight(int weight) {
 bool SDLManager::checkTime(std::string_view currentTimepoint) {
   static std::string previousTimepoint{};
 
-  if (currentTimepoint == previousTimepoint.c_str()) {
+  if (currentTimepoint == previousTimepoint) {
     return false;
   } else {
     previousTimepoint = currentTimepoint;
@@ -367,7 +400,7 @@ void SDLManager::setRenderingColor(Uint8 r, Uint8 g, Uint8 b) {
   SDL_SetRenderDrawColor(getRawRenderer(), r, g, b, SDL_ALPHA_OPAQUE);
 }
 
-void SDLManager::setSurfacePosition(SDLSpec *surface, Uint16 x, Uint16 y,
+void SDLManager::setSurfacePosition(SDLSurfaceSpec *surface, Uint16 x, Uint16 y,
                                     Uint16 w, Uint16 h) {
   // Standard white color
   surface->color.a = 255;
@@ -383,48 +416,43 @@ void SDLManager::setSurfacePosition(SDLSpec *surface, Uint16 x, Uint16 y,
 
 void SDLManager::setMessagePositionOf(const std::vector<std::string> &strings,
                                       std::vector<SDLMessage> &vec) {
-
-  int charHeight = 0, charWidth = 0;
   int lineSpacing = 50;
 
-  // Total height of both messages
-  int totalHeight = 0;
-  for (size_t i = 0; i < vec.size(); ++i) {
-    if (i == 0) {
-      charHeight = 100;
-    } else {
-      charHeight = 70;
+  for (size_t group = 0; group < vec.size(); group += 2) {
+
+    int charHeightTop = 240;
+    int charHeightBottom = 100;
+
+    int totalHeight = charHeightTop + charHeightBottom + lineSpacing;
+
+    int startY = ((SDLGraphicsCfg::WINDOW_HEIGHT - totalHeight) / 2) - 200;
+
+    for (size_t i = 0; i < 2 && (group + i) < vec.size(); ++i) {
+
+      int charWidth, charHeight;
+
+      if (i == 1 && group == 0) {
+        charWidth = 50;
+        charHeight = 100;
+      } else {
+        charWidth = 100;
+        charHeight = 200;
+      }
+
+      size_t idx = group + i;
+
+      vec[idx].spec.rect.w = charWidth * strings[idx].size();
+      vec[idx].spec.rect.h = charHeight;
+
+      vec[idx].spec.rect.x =
+          (SDLGraphicsCfg::WINDOW_WIDTH - vec[idx].spec.rect.w) / 2;
+
+      vec[idx].spec.rect.y = startY;
+
+      startY += charHeight + lineSpacing * 4;
+
+      vec[idx].spec.color = {255, 255, 255, 255};
     }
-    totalHeight += charHeight;
-  }
-  totalHeight += (vec.size() - 1) * lineSpacing;
-
-  // Start drawing from top so that messages are vertically centered
-  int startY = ((SDLGraphicsCfg::WINDOW_HEIGHT - totalHeight) / 2) - 200;
-
-  for (size_t i = 0; i < vec.size(); ++i) {
-    if (i == 0) {
-      charWidth = 120;
-      charHeight = 240;
-    } else {
-      charWidth = 50;
-      charHeight = 100;
-    }
-
-    // Set width and height
-    vec[i].spec.rect.w = charWidth * strings[i].size();
-    vec[i].spec.rect.h = charHeight;
-
-    // Horizontal centering
-    vec[i].spec.rect.x =
-        (SDLGraphicsCfg::WINDOW_WIDTH - vec[i].spec.rect.w) / 2;
-
-    // Vertical stacking
-    vec[i].spec.rect.y = startY;
-    startY += charHeight + lineSpacing * 4;
-
-    // Set color to white
-    vec[i].spec.color = {255, 255, 255, 255};
   }
 }
 

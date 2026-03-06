@@ -38,8 +38,8 @@ constexpr Uint16 WEIGHT_CHAR_SIZE = 250;
 
 // Surface sizes and limits
 constexpr Uint16 WEIGHT_HEIGHT = 500;
-constexpr Uint16 IMAGE_WIDTH = 500;
-constexpr Uint16 IMAGE_HEIGHT = 500;
+constexpr Uint16 IMAGE_WIDTH = 300;
+constexpr Uint16 IMAGE_HEIGHT = 300;
 constexpr Uint16 LOGO_WIDTH = 242;
 constexpr Uint16 LOGO_HEIGHT = 48;
 constexpr Uint16 TIME_WIDTH = 300;
@@ -115,14 +115,23 @@ template <> struct SDLDeleter<TTF_Font> {
  * @param rect x,y,w,h cooridnates for the size and cursor
  * @return Design for a surface
  */
-typedef struct SDLSurfaceSpec {
+
+struct SDLSurfaceSpec {
   SDL_Color color;
   SDL_Rect rect;
-} SDLSpec;
+};
 
-typedef struct SDLMessage {
+struct SDLMessage {
   sdl_unique<SDL_Texture> texture;
-  SDLSpec spec;
-} SDLMessage;
+  SDLSurfaceSpec spec;
+};
+
+using Clock = std::chrono::steady_clock;
+
+struct StateTimer {
+  bool state;
+  Clock::time_point tp;
+  Clock::duration elapsed;
+};
 
 #endif

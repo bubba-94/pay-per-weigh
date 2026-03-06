@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 project(PAY-PER-WEIGH LANGUAGES CXX)
 
+set(DEBUG_FLAGS "-Wall -Wextra -g")
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DEBUG_FLAGS}")
 
 if(RPI)
     add_compile_definitions(RPI)
@@ -12,16 +13,17 @@ set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+    set(ARCH aarch64)
     set(ARCHIVE _ppw-pi5)
 else()
+    set(ARCH x86)
     set(ARCHIVE _ppw-x86)
 endif()
 
+set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/${ARCH}")
+
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
 
-    add_compile_definitions(ASSET_DIR="${CMAKE_SOURCE_DIR}/assets")
-
-    set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/x86")
 
     message(STATUS ${STARTYELLOW})
     
@@ -67,8 +69,6 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
         target_include_directories(SDL2_ttf::SDL2_ttf INTERFACE ${SDL2_TTF_INCLUDE_DIRS})
         target_link_libraries(SDL2_ttf::SDL2_ttf INTERFACE ${SDL2_TTF_LIBRARIES})
     endif()
-
-
     message(STATUS ${ENDYELLOW})
 
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
@@ -134,15 +134,13 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
         NAMES gpiodcxx
         HINTS "${SYSROOT}/usr/lib/aarch64-linux-gnu" 
         NO_DEFAULT_PATH
-        )
+    )
 
     find_library(GPIOD_C_LIBRARY
         NAMES gpiod
         HINTS "${SYSROOT}/usr/lib/aarch64-linux-gnu" 
         NO_DEFAULT_PATH
-        )
-    
-    set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/aarch64")
+    )
     
     message(STATUS ${STARTGREEN})
     
@@ -171,6 +169,7 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
     message(STATUS ${ENDGREEN})
 endif() 
 
+find_package(nlohmann_json REQUIRED)
 # Target output
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_DIR})
@@ -183,8 +182,15 @@ add_subdirectory(${SRC_DIR} sdl2-archive)
 add_executable(pay-per-weigh main.cpp)
 
 # Link the library defined in src/CMakeLists.txt
-target_link_libraries(pay-per-weigh PRIVATE ${ARCHIVE})
+target_link_libraries(pay-per-weigh PRIVATE 
+        ${ARCHIVE}
+        nlohmann_json::nlohmann_json
+        )
 
 if(RPI)
-    target_link_libraries(pay-per-weigh PRIVATE ${GPIOD_CXX_LIBRARY} ${GPIOD_C_LIBRARY})
+    target_link_libraries(pay-per-weigh 
+        PRIVATE 
+            ${GPIOD_CXX_LIBRARY} 
+            ${GPIOD_C_LIBRARY}
+            )
 endif()

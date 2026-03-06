@@ -15,7 +15,7 @@ mkdir -p "$PC_DIR"
 echo "Configuring and building for x86..."
 cd "$PC_DIR" || exit 1
 cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_TOOLCHAIN_FILE=../toolchain-x86.cmake ..
-cmake --build .
+cmake --build . --parallel 8
 echo "Build for x86 done."
 
 cd "$ROOT_DIR" || exit 1
@@ -30,7 +30,10 @@ cmake -DRPI=ON \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
       -DCMAKE_TOOLCHAIN_FILE=../toolchain-aarch64.cmake \
       -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" ..
-cmake --build .
+cmake --build . --parallel 8
 echo "Build for aarch64 done."
 
-cd "$ROOT_DIR" || exit 1
+
+cd "$ROOT_DIR" 
+
+exit 1
