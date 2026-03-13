@@ -1,37 +1,22 @@
+#include "Application.hpp"
 #include "Client.hpp"
-#include "Device.hpp"
-#include "Gpio.hpp"
-#include "Graphics.hpp"
 
 int main() {
-  SDLManager sdl("pay-per-weigh");
+  Application ppw("pay-per-weigh", "/dev/ttyACM0", "/dev/gpiochip4");
+
   Client client("localhost", 8443);
 
-  client.postNewPaymentRequest();
+  client.postNewTestPaymentRequest();
 
 #ifdef RPI
-  Device pi("/dev/ttyACM0");
-  GpioPi gpio("/dev/gpiochip4");
+  States::AppInput input{};
 #endif
 
-  std::string timePoint{};
-  int currentWeight{0};
-
-  while (sdl.getStatus()) {
-
+  while (ppw.getStatus()) {
 #ifdef RPI
-    currentWeight = pi.getWeight();
-    timePoint = pi.getTimepoint();
-    gpio.poll();
-    sdl.poll(gpio.getState(), client.getPaymentStatus());
-#else
-    // For testing on desktop
-    timePoint = "[TEST] 940601 - 13:37";
-    sdl.pollEvents();
-    currentWeight = 1337;
+    // Forward a refrernce of the client to Application.
+    ppw.update(input, client.getPayment());
 #endif
-
-    sdl.render(currentWeight, timePoint);
   }
 
   return 0;
