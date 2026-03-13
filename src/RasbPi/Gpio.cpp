@@ -1,6 +1,8 @@
-#include "Gpio.hpp"
+#include "RasbPi/Gpio.hpp"
 
 #ifdef RPI
+
+using namespace RasbPi;
 
 GpioPi::GpioPi(const std::string &path) {
   gpiod::chip chip(path);
@@ -53,7 +55,7 @@ void GpioPi::poll() {
   }
 }
 
-const PinState GpioPi::getState() const { return state; }
+const States::PinState GpioPi::getState() const { return state; }
 
 void GpioPi::setup(gpiod::request_builder &builder) {
 
@@ -73,13 +75,14 @@ void GpioPi::setup(gpiod::request_builder &builder) {
 
 void GpioPi::handleShutdown(const gpiod::edge_event &event) {
   // If event buffer is populated
-  state.shutdownRequested =
+    state.shutdownRequested =
       event.type() == gpiod::edge_event::event_type::RISING_EDGE;
 }
 
 void GpioPi::handleKey(const gpiod::edge_event &event) {
   // If event buffer is populated
   state.keyEnabled = event.type() == gpiod::edge_event::event_type::RISING_EDGE;
+  
 }
 
 #endif
