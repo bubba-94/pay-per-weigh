@@ -1,9 +1,14 @@
 add_library(${ARCHIVE}
-    STATIC 
-       Graphics.cpp
-       Client.cpp
-       Device.cpp
-       Gpio.cpp
+    STATIC
+    
+    SDL/Events.cpp
+    SDL/WindowRenderer.cpp
+    SDL/Textures.cpp
+    SDL/Graphics.cpp
+    RasbPi/Device.cpp
+    RasbPi/Gpio.cpp
+    Client.cpp
+    Application.cpp
 )
 
 target_include_directories(${ARCHIVE}

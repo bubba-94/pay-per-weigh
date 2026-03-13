@@ -14,6 +14,10 @@
 #include <memory>
 #include <queue>
 #include <string>
+#include <array>
+#include <vector>
+
+namespace SDL {
 
 /**
  * @namespace SDLGraphicsCfg
@@ -21,7 +25,7 @@
  * @brief
  * Configuration for the graphical positioning of surfaces.
  */
-namespace SDLGraphicsCfg {
+namespace GraphicsCfg {
 // Image paths ()
 #ifdef RPI
 // Windows specs for Raspberry Pi Monitor (standing)
@@ -64,7 +68,7 @@ constexpr Uint16 LOGO_Y = WINDOW_HEIGHT - LOGO_HEIGHT - 50;
 // Time position (bottom left)
 constexpr Uint16 TIME_X = 50;
 constexpr Uint16 TIME_Y = WINDOW_HEIGHT - TIME_HEIGHT - 50;
-}; // namespace SDLGraphicsCfg
+}; // namespace GraphicsCfg
 
 /**
  * @brief Template for a custom SDL instance deleter
@@ -115,15 +119,14 @@ template <> struct SDLDeleter<TTF_Font> {
  * @param rect x,y,w,h cooridnates for the size and cursor
  * @return Design for a surface
  */
-
-struct SDLSurfaceSpec {
-  SDL_Color color;
-  SDL_Rect rect;
+struct SurfaceSpec {
+  SDL_Color color = {0,0,0,0};
+  SDL_Rect rect = {0,0,0,0};
 };
 
 struct SDLMessage {
   sdl_unique<SDL_Texture> texture;
-  SDLSurfaceSpec spec;
+  SurfaceSpec spec;
 };
 
 using Clock = std::chrono::steady_clock;
@@ -134,4 +137,34 @@ struct StateTimer {
   Clock::duration elapsed;
 };
 
+enum FileError : uint8_t {
+  APP = 0,
+  WIND_REND,
+  TEXTURE,
+  GRAPHICS,
+};
+
+namespace Prints {
+
+inline std::string_view fileErrorStr(FileError file) {
+    switch (file) {
+        case APP: return "APP";
+        case WIND_REND: return "WINDOW_RENDERER";
+        case TEXTURE: return "TEXTURE";
+        case GRAPHICS: return "GRAPHICS";
+        default: return "UNKNOWN";
+    }
+}
+
+/**
+ * @brief Print out the occured SDL Error
+ *
+ * @param file Each file owns an enum type
+ * @param msg A message provided by SDL_GetError()
+ */
+inline void errMsg(FileError file, const std::string &msg){
+  std::cout << "[" << fileErrorStr(file) << "] " << msg << "\n";
+}
+} // namespace Prints
+}; // namespace SDL
 #endif
