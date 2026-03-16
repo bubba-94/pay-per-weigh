@@ -184,14 +184,7 @@ add_executable(pay-per-weigh main.cpp)
 # Link the library defined in src/CMakeLists.txt
 target_link_libraries(pay-per-weigh PRIVATE 
         ${ARCHIVE}
-<<<<<<< HEAD
         nlohmann_json::nlohmann_json
-=======
-<<<<<<< HEAD
-=======
-        nlohmann_json::nlohmann_json
->>>>>>> 11b8a09 (Feat/payment method (#4))
->>>>>>> 4f54008 (Feat/payment method (#4))
         )
 
 if(RPI)
