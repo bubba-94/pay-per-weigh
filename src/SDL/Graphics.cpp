@@ -148,8 +148,20 @@ void Graphics::weightState(States::AppInput &input, bool admin) {
 
   // Render weight right away admin == true
   if (admin) {
+    // Reset all timers when admin is active
+    weightTimer.tp = Clock::now();
+    paymentTimer.tp = Clock::now();
+    messageTimer.tp = Clock::now();
+
     SDL_RenderCopy(renderer.getRawRenderer(), weight.getTex(), NULL,
                    &weight.getSpecRect());
+    return;
+  }
+
+  // Disrupt admin mode.
+  if (!input.pins.keyEnabled &&
+      input.payments.status != States::PaymentStatus::SUCCESSFUL && !admin) {
+    renderStates = RenderState::WELCOME_MESSAGE;
     return;
   }
 
@@ -158,8 +170,6 @@ void Graphics::weightState(States::AppInput &input, bool admin) {
     weightTimer.tp = Clock::now();
     weightTimer.state = true;
   }
-
-  weightTimer.elapsed = Clock::now() - weightTimer.tp;
 
   if (input.payments.status == States::PaymentStatus::SUCCESSFUL) {
 
