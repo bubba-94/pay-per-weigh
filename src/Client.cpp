@@ -32,7 +32,7 @@ void Client::pollStatus() {
 }
 
 #ifdef RPI
-const States::PaymentData &Client::getPayment() {
+States::PaymentData &Client::getPayment() {
   std::lock_guard<std::mutex> lock(dataMtx);
   return payment;
 }
@@ -66,25 +66,7 @@ void Client::postNewTestPaymentRequest() {
 
 void Client::checkStatusOfPaymentId() {
 
-// Add timer to reset?
-#ifdef RPI
-  if (payment.status == States::PaymentStatus::SENT && !timer) {
-    // Start the timer
-    tp = std::chrono::steady_clock::now();
-    timer = true;
-    return;
-  } else if (timer) {
-    auto elapsed = std::chrono::steady_clock::now() - tp;
-
-    if (elapsed >= std::chrono::seconds(5)) {
-      timer = false;
-      payment.status = States::PaymentStatus::NONE;
-    } else
-      return;
-  } else
-    return; // Return to top if not matched.
-#endif
-  // Copy paymentId into local variable???
+  // Add timer to reset?
   const std::string VALID_STATUS = "VALID";
   int id = 0;
   {
@@ -114,12 +96,14 @@ void Client::checkStatusOfPaymentId() {
     std::cout << "[CLIENT] Payment: " << id << " |  " << status << "\n";
     {
       std::lock_guard<std::mutex> lock(dataMtx);
-      if (status == VALID_STATUS && !paymentSuccessful) {
-        paymentSuccessful = true;
 #ifdef RPI
+      if (status == VALID_STATUS &&
+          payment.status == States::PaymentStatus::NONE) {
+
+        paymentSuccessful = true;
         payment.status = States::PaymentStatus::SENT;
-#endif
       }
+#endif
     }
   }
 }

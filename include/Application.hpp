@@ -20,7 +20,7 @@ public:
               const std::string &port);
   ~Application();
 #ifdef RPI
-  void update(States::AppInput &input, const States::PaymentData &payment);
+  void update(States::AppInput &input, States::PaymentData &payment);
 #endif
   bool getStatus() const;
 
@@ -29,7 +29,7 @@ private:
   bool status = false;
 
   /// @brief State of rendering, true == ADMIN MODE PRESENT WEIGHT
-  bool adminMode = false;
+  bool admin = false;
 
   /// @brief One application, one window.
   SDL::WindowRenderer window;

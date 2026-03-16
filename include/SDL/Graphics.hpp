@@ -20,12 +20,12 @@ public:
   ~Graphics();
 
 #ifdef RPI
-  void render(const States::AppInput input, bool admin = false);
+  void render(States::AppInput &input, bool admin = false);
 
-  void messageState(const States::AppInput input, bool admin);
-  void qrState(const States::AppInput input, bool admin);
-  void paymentState(const States::AppInput input, bool admin);
-  void weightState(const States::AppInput input, bool admin);
+  void messageState(States::AppInput &input);
+  void qrState(States::AppInput &input);
+  void paymentState(States::AppInput &input);
+  void weightState(States::AppInput &input, bool admin);
 
   void presentLogoAndTime();
 #endif

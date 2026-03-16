@@ -26,7 +26,7 @@ public:
   ~Client();
   void postNewTestPaymentRequest();
 #ifdef RPI
-  const States::PaymentData &getPayment();
+  States::PaymentData &getPayment();
 #endif
 
 private:

@@ -14,7 +14,16 @@
  */
 namespace States {
 
-enum class PaymentStatus { NONE, PENDING, SUCCESS, FAILED, SENT, RECEIVED };
+enum class PaymentStatus {
+  NONE,
+  VALID,
+  PROCESSING,
+  PENDING,
+  SUCCESSFUL,
+  FAILED,
+  SENT,
+  RECEIVED
+};
 
 struct DeviceValue {
   int weight = 0;
@@ -29,6 +38,7 @@ struct PinState {
 struct PaymentData {
   int id = 0;
   PaymentStatus status = PaymentStatus::NONE;
+  bool requested = false;
 };
 
 /**
@@ -42,4 +52,4 @@ struct AppInput {
 
 }; // namespace States
 #endif
-#endif
+#endif // ifdef RPI

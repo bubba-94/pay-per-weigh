@@ -38,7 +38,7 @@ Graphics::Graphics(WindowRenderer &renderer)
 Graphics::~Graphics(){};
 
 #ifdef RPI
-void Graphics::render(const States::AppInput input, bool admin) {
+void Graphics::render(States::AppInput &input, bool admin) {
 
   if (weight.check(input.values.weight))
     weight.update(input.values.weight);
@@ -52,16 +52,16 @@ void Graphics::render(const States::AppInput input, bool admin) {
   switch (renderStates) {
 
   case RenderState::WELCOME_MESSAGE:
-    messageState(input, admin);
+    messageState(input);
     break;
 
   case RenderState::QR:
-    qrState(input, admin);
+    qrState(input);
     break;
 
   // Render welcome message
   case RenderState::PROCESSING_PAYMENT:
-    paymentState(input, admin);
+    paymentState(input);
     break;
 
   // Render weight surface when payment is succesful or admin mode is active.
@@ -73,32 +73,41 @@ void Graphics::render(const States::AppInput input, bool admin) {
   presentLogoAndTime();
 }
 
-void Graphics::messageState(const States::AppInput input, bool admin) {
+void Graphics::messageState(States::AppInput &input) {
   if (!messageTimer.state) {
     messageTimer.tp = Clock::now();
     messageTimer.state = true;
+  }
+
+  if (input.payments.status == States::PaymentStatus::SUCCESSFUL) {
+    renderStates = RenderState::WEIGHT;
+  }
+
+  if (input.values.weight >= 1500 &&
+      Clock::now() - messageTimer.tp >= std::chrono::seconds(5)) {
+
+    messageTimer.state = false;
+    renderStates = RenderState::QR;
   }
 
   for (size_t i = 0; i < 2; ++i) {
     SDL_RenderCopy(renderer.getRawRenderer(), messages.getRawMessage(i), NULL,
                    &messages.getSpecRect(i));
   }
-
-  if (!admin && input.values.weight >= 1500 &&
-      Clock::now() - messageTimer.tp >= std::chrono::seconds(5)) {
-
-    messageTimer.state = false;
-    renderStates = RenderState::QR;
-  }
 }
 
-void Graphics::qrState(const States::AppInput input, bool admin) {
+void Graphics::qrState(States::AppInput &input) {
+  if (input.payments.status == States::PaymentStatus::SUCCESSFUL) {
+    renderStates = RenderState::WEIGHT;
+  }
   // Message == IDLE
   if (!input.pins.keyEnabled && input.values.weight < 1500) {
     renderStates = RenderState::WELCOME_MESSAGE;
   }
-  if (input.payments.status == States::PaymentStatus::SUCCESS &&
-      input.payments.status != States::PaymentStatus::RECEIVED) {
+
+  if (input.payments.status == States::PaymentStatus::SENT &&
+      input.values.weight >= 1500) {
+    input.payments.status = States::PaymentStatus::PROCESSING;
     renderStates = RenderState::PROCESSING_PAYMENT;
     // If Payment done renderState = RenderState::WEIGHT
   }
@@ -107,8 +116,12 @@ void Graphics::qrState(const States::AppInput input, bool admin) {
                  &qr.getSpecRect());
 }
 
-void Graphics::paymentState(const States::AppInput input, bool admin) {
+void Graphics::paymentState(States::AppInput &input) {
   size_t len = messages.sizeOfMessages();
+
+  if (input.payments.status == States::PaymentStatus::SUCCESSFUL) {
+    renderStates = RenderState::WEIGHT;
+  }
 
   if (!paymentTimer.state) {
     paymentTimer.tp = Clock::now();
@@ -117,49 +130,54 @@ void Graphics::paymentState(const States::AppInput input, bool admin) {
 
   paymentTimer.elapsed = Clock::now() - paymentTimer.tp;
 
+  // Simulate successful payment
+  if (paymentTimer.elapsed >= std::chrono::seconds(3)) {
+    input.payments.status = States::PaymentStatus::SUCCESSFUL;
+    paymentTimer.state = false;
+    renderStates = RenderState::WEIGHT;
+  }
+
   // Render "PROCESSING PAYMENT"
   for (size_t i = 2; i < len; ++i) {
     SDL_RenderCopy(renderer.getRawRenderer(), messages.getRawMessage(i), NULL,
                    &messages.getSpecRect(i));
   }
-
-  if (paymentTimer.elapsed >= std::chrono::seconds(3)) {
-    paymentTimer.state = false;
-    renderStates = RenderState::WEIGHT;
-  }
 }
 
-void Graphics::weightState(const States::AppInput input, bool admin) {
+void Graphics::weightState(States::AppInput &input, bool admin) {
 
+  // Render weight right away admin == true
   if (admin) {
     SDL_RenderCopy(renderer.getRawRenderer(), weight.getTex(), NULL,
                    &weight.getSpecRect());
-  }
-
-  if (!input.pins.keyEnabled &&
-      input.payments.status != States::PaymentStatus::SUCCESS && !admin) {
-    renderStates = RenderState::WELCOME_MESSAGE;
     return;
   }
 
-  if (!weightTimer.state && !admin) {
+  if (!weightTimer.state &&
+      input.payments.status == States::PaymentStatus::SUCCESSFUL) {
     weightTimer.tp = Clock::now();
     weightTimer.state = true;
   }
 
   weightTimer.elapsed = Clock::now() - weightTimer.tp;
 
-  // Only start clock when payment is successful,
-  // to view the weight for a certain amount of seconds
-  if (weightTimer.elapsed < std::chrono::seconds(10)) {
-    SDL_RenderCopy(renderer.getRawRenderer(), weight.getTex(), NULL,
-                   &weight.getSpecRect());
-  } else {
-    // Reset values
-    weightTimer.state = false;
-    paymentReceived = true;
-    renderStates = RenderState::WELCOME_MESSAGE;
+  if (input.payments.status == States::PaymentStatus::SUCCESSFUL) {
+
+    weightTimer.elapsed = Clock::now() - weightTimer.tp;
+
+    if (weightTimer.elapsed >= std::chrono::seconds(10)) {
+      // Reset for new payment
+      input.payments.requested = false;
+      weightTimer.state = false;
+      paymentReceived = true;
+      input.payments.status = States::PaymentStatus::NONE;
+      renderStates = RenderState::WELCOME_MESSAGE;
+      return;
+    }
   }
+
+  SDL_RenderCopy(renderer.getRawRenderer(), weight.getTex(), NULL,
+                 &weight.getSpecRect());
 }
 
 void Graphics::presentLogoAndTime() {

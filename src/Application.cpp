@@ -19,7 +19,7 @@ bool Application::getStatus() const { return status; }
 
 #ifdef RPI
 void Application::update(States::AppInput &input,
-                         const States::PaymentData &payment) {
+                         States::PaymentData &payment) {
 
   // Poll pins for updates (PRIORITY)
   // Shutdown and override
@@ -32,19 +32,22 @@ void Application::update(States::AppInput &input,
   }
 
   if (input.pins.keyEnabled) {
-    adminMode = true;
+    admin = true;
   } else
-    adminMode = false;
+    admin = false;
 
   input.payments.id = payment.id;
-  input.payments.status = payment.status;
+  if (payment.status == States::PaymentStatus::SENT && !payment.requested) {
+    payment.requested = true;
+    input.payments.status = payment.status;
+  }
 
   // Fill with values from device
   input.values.timepoint = device.getTimepoint();
   input.values.weight = device.getWeight();
 
   window.clear();
-  graphics.render(input, adminMode);
+  graphics.render(input, admin);
   window.present();
 }
 #endif
