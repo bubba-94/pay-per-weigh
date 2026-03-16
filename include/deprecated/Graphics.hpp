@@ -2,9 +2,9 @@
 #define GRAPHICS_HPP
 
 // File to keep this file
-#include "GraphicTypes.hpp"
+#include "Types.hpp"
 #ifdef RPI
-#include "PinState.hpp"
+#include "../States.hpp"
 #endif
 
 /**
@@ -221,8 +221,8 @@ private:
    * @param w width of texture.
    * @param h height of texture.
    */
-  void setSurfacePosition(SDLSurfaceSpec *surface, Uint16 x, Uint16 y, Uint16 w,
-                          Uint16 h);
+  void setSurfacePosition(Graphics::SDLSurfaceSpec *surface, Uint16 x, Uint16 y,
+                          Uint16 w, Uint16 h);
 
   /**
    * @brief
@@ -232,7 +232,7 @@ private:
    * @param vec reference to the SDLMessage configuration.
    */
   void setMessagePositionOf(const std::vector<std::string> &strings,
-                            std::vector<SDLMessage> &vec);
+                            std::vector<Graphics::SDLMessage> &vec);
 
   /**
    * @brief The length of new incoming weight.
@@ -298,9 +298,9 @@ private:
   /// @brief Another bool to stop evaluating previous payment
   bool paymentReceived = false;
 
-  StateTimer weightTimer;
-  StateTimer paymentProcessTimer;
-  StateTimer messageTimer;
+  Graphics::StateTimer weightTimer;
+  Graphics::StateTimer paymentProcessTimer;
+  Graphics::StateTimer messageTimer;
 
   /**
    * @brief State of rendering, present welcome message first.
@@ -312,20 +312,25 @@ private:
 
   std::string timepoint; // Store the incoming timepoint
 
-  SDLSurfaceSpec logoSpec;   // Specs for the logo presented (bottom right).
-  SDLSurfaceSpec timeSpec;   // Specs for the time presented (bottom left).
-  SDLSurfaceSpec qrSpec;     // Specs for the qr images presented (centered).
-  SDLSurfaceSpec weightSpec; // Specs for the weight presented (centered).
+  Graphics::SDLSurfaceSpec
+      logoSpec; // Specs for the logo presented (bottom right).
+  Graphics::SDLSurfaceSpec
+      timeSpec; // Specs for the time presented (bottom left).
+  Graphics::SDLSurfaceSpec
+      qrSpec; // Specs for the qr images presented (centered).
+  Graphics::SDLSurfaceSpec
+      weightSpec; // Specs for the weight presented (centered).
 
-  std::vector<SDLMessage> message;   // Vector for multiple lines.
-  sdl_unique<SDL_Texture> logo;      // Texture for logo (always visible).
-  sdl_unique<SDL_Texture> time;      // Texture for timestamp (always visible)
-  sdl_unique<SDL_Texture> image;     // Texture for QR code.
-  sdl_unique<SDL_Texture> weight;    // Texture for weight.
-  sdl_unique<SDL_Surface> surface;   // Surface.
-  sdl_unique<TTF_Font> font;         // Font.
-  sdl_unique<SDL_Renderer> renderer; // Renderer.
-  sdl_unique<SDL_Window> window;     // Window.
+  std::vector<Graphics::SDLMessage> message; // Vector for multiple lines.
+  Graphics::sdl_unique<SDL_Texture> logo; // Texture for logo (always visible).
+  Graphics::sdl_unique<SDL_Texture>
+      time; // Texture for timestamp (always visible)
+  Graphics::sdl_unique<SDL_Texture> image;     // Texture for QR code.
+  Graphics::sdl_unique<SDL_Texture> weight;    // Texture for weight.
+  Graphics::sdl_unique<SDL_Surface> surface;   // Surface.
+  Graphics::sdl_unique<TTF_Font> font;         // Font.
+  Graphics::sdl_unique<SDL_Renderer> renderer; // Renderer.
+  Graphics::sdl_unique<SDL_Window> window;     // Window.
 
   /**
    * @brief Event handler for dekstop application.

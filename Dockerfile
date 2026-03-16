@@ -1,6 +1,6 @@
 FROM ubuntu:24.04
 
-# Shippable testing environment for Dekstops.
+# Shippable testing environment for Dekstops. Old version
 
 WORKDIR /pay-per-weigh
 

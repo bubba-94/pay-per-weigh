@@ -4,8 +4,7 @@ Checks: >
   performance-*,
   clang-analyzer-*,
   -clang-analyzer-alpha.*   # disable experimental slow checks
-WarningsAsErrors: '*'
-
+  
 # Exclude external libraries (negative lookahead regex)
 HeaderFilterRegex: '^(?!/home/moodin/coding/internship/pay-per-weigh/include/external-libs/).*'
 

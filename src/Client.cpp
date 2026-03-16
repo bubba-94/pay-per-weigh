@@ -31,12 +31,14 @@ void Client::pollStatus() {
   }
 }
 
-bool Client::getPaymentStatus() {
+#ifdef RPI
+States::PaymentData &Client::getPayment() {
   std::lock_guard<std::mutex> lock(dataMtx);
-  return paymentSuccessful;
+  return payment;
 }
+#endif
 
-void Client::postNewPaymentRequest() {
+void Client::postNewTestPaymentRequest() {
   // Incoming from request / response
   const std::string PATH = "/paymentRequest";
   json body;
@@ -55,21 +57,23 @@ void Client::postNewPaymentRequest() {
     json response = json::parse(res->body);
     {
       std::lock_guard<std::mutex> lock(dataMtx);
-      paymentId = response["id"].get<int>();
+#ifdef RPI
+      payment.id = response["id"].get<int>();
+#endif
     }
   }
 }
 
 void Client::checkStatusOfPaymentId() {
-  if (statusSent) {
-    return;
-  }
-  // Copy paymentId into local variable???
+
+  // Add timer to reset?
   const std::string VALID_STATUS = "VALID";
   int id = 0;
   {
     std::lock_guard<std::mutex> lock(dataMtx);
-    id = paymentId;
+#ifdef RPI
+    id = payment.id;
+#endif
   }
 
   if (id <= 0) {
@@ -92,10 +96,14 @@ void Client::checkStatusOfPaymentId() {
     std::cout << "[CLIENT] Payment: " << id << " |  " << status << "\n";
     {
       std::lock_guard<std::mutex> lock(dataMtx);
-      if (status == VALID_STATUS && !paymentSuccessful) {
+#ifdef RPI
+      if (status == VALID_STATUS &&
+          payment.status == States::PaymentStatus::NONE) {
+
         paymentSuccessful = true;
-        statusSent = true;
+        payment.status = States::PaymentStatus::SENT;
       }
+#endif
     }
   }
 }

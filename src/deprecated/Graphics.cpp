@@ -1,4 +1,4 @@
-#include "Graphics.hpp"
+#include "../../include/deprecated/Graphics.hpp"
 
 SDLManager::SDLManager(const std::string &windowTitle) {
 
@@ -17,10 +17,10 @@ SDLManager::SDLManager(const std::string &windowTitle) {
 #endif
 
   // Create window from specifics
-  window.reset(SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED,
-                                SDL_WINDOWPOS_CENTERED,
-                                SDLGraphicsCfg::WINDOW_WIDTH,
-                                SDLGraphicsCfg::WINDOW_HEIGHT, windowFlags));
+  window.reset(SDL_CreateWindow(
+      windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+      Graphics::SDLGraphicsCfg::WINDOW_WIDTH,
+      Graphics::SDLGraphicsCfg::WINDOW_HEIGHT, windowFlags));
 
   int renderFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
   if (!window)
@@ -111,7 +111,7 @@ void SDLManager::render(int newWeight, std::string_view clock) {
   case SurfaceState::WELCOME_MESSAGE:
 
     if (!messageTimer.state) {
-      messageTimer.tp = Clock::now();
+      messageTimer.tp = Graphics::Clock::now();
       messageTimer.state = true;
     }
 
@@ -121,7 +121,7 @@ void SDLManager::render(int newWeight, std::string_view clock) {
     }
 
     if (!keyOverride && newWeight >= 1500 &&
-        Clock::now() - messageTimer.tp >= std::chrono::seconds(5)) {
+        Graphics::Clock::now() - messageTimer.tp >= std::chrono::seconds(5)) {
 
       messageTimer.state = false;
       renderStates = SurfaceState::QR;
@@ -130,11 +130,12 @@ void SDLManager::render(int newWeight, std::string_view clock) {
 
   case SurfaceState::PROCESSING_PAYMENT:
     if (!paymentProcessTimer.state) {
-      paymentProcessTimer.tp = Clock::now();
+      paymentProcessTimer.tp = Graphics::Clock::now();
       paymentProcessTimer.state = true;
     }
 
-    paymentProcessTimer.elapsed = Clock::now() - paymentProcessTimer.tp;
+    paymentProcessTimer.elapsed =
+        Graphics::Clock::now() - paymentProcessTimer.tp;
 
     // Render "PROCESSING PAYMENT"
     for (size_t i = 2; i < message.size(); ++i) {
@@ -161,11 +162,11 @@ void SDLManager::render(int newWeight, std::string_view clock) {
     }
 
     if (!weightTimer.state) {
-      weightTimer.tp = Clock::now();
+      weightTimer.tp = Graphics::Clock::now();
       weightTimer.state = true;
     }
 
-    weightTimer.elapsed = Clock::now() - weightTimer.tp;
+    weightTimer.elapsed = Graphics::Clock::now() - weightTimer.tp;
 
     // Only start clock when payment is successful,
     // to view the weight for a certain amount of seconds
@@ -199,14 +200,20 @@ void SDLManager::setup() {
   createMessages(MESSAGES);
 
   // Set surface framings to default
-  setSurfacePosition(&timeSpec, SDLGraphicsCfg::TIME_X, SDLGraphicsCfg::TIME_Y,
-                     SDLGraphicsCfg::TIME_WIDTH, SDLGraphicsCfg::TIME_HEIGHT);
-  setSurfacePosition(&qrSpec, SDLGraphicsCfg::IMAGE_X, SDLGraphicsCfg::IMAGE_Y,
-                     SDLGraphicsCfg::IMAGE_WIDTH, SDLGraphicsCfg::IMAGE_HEIGHT);
-  setSurfacePosition(&logoSpec, SDLGraphicsCfg::LOGO_X, SDLGraphicsCfg::LOGO_Y,
-                     SDLGraphicsCfg::LOGO_WIDTH, SDLGraphicsCfg::LOGO_HEIGHT);
-  setSurfacePosition(&weightSpec, weightX, SDLGraphicsCfg::WEIGHT_Y,
-                     weightWidth, SDLGraphicsCfg::WEIGHT_HEIGHT);
+  setSurfacePosition(&timeSpec, Graphics::SDLGraphicsCfg::TIME_X,
+                     Graphics::SDLGraphicsCfg::TIME_Y,
+                     Graphics::SDLGraphicsCfg::TIME_WIDTH,
+                     Graphics::SDLGraphicsCfg::TIME_HEIGHT);
+  setSurfacePosition(&qrSpec, Graphics::SDLGraphicsCfg::IMAGE_X,
+                     Graphics::SDLGraphicsCfg::IMAGE_Y,
+                     Graphics::SDLGraphicsCfg::IMAGE_WIDTH,
+                     Graphics::SDLGraphicsCfg::IMAGE_HEIGHT);
+  setSurfacePosition(&logoSpec, Graphics::SDLGraphicsCfg::LOGO_X,
+                     Graphics::SDLGraphicsCfg::LOGO_Y,
+                     Graphics::SDLGraphicsCfg::LOGO_WIDTH,
+                     Graphics::SDLGraphicsCfg::LOGO_HEIGHT);
+  setSurfacePosition(&weightSpec, weightX, Graphics::SDLGraphicsCfg::WEIGHT_Y,
+                     weightWidth, Graphics::SDLGraphicsCfg::WEIGHT_HEIGHT);
 }
 
 void SDLManager::printErrMsg(const std::string &errMsg) {
@@ -290,8 +297,8 @@ void SDLManager::updateWeightTexture(int newWeight) {
   std::string value = std::to_string(newWeight);
 
   setWeightWidth(newWeight);
-  setSurfacePosition(&weightSpec, weightX, SDLGraphicsCfg::WEIGHT_Y,
-                     weightWidth, SDLGraphicsCfg::WEIGHT_HEIGHT);
+  setSurfacePosition(&weightSpec, weightX, Graphics::SDLGraphicsCfg::WEIGHT_Y,
+                     weightWidth, Graphics::SDLGraphicsCfg::WEIGHT_HEIGHT);
 
   surface.reset(
       TTF_RenderUTF8_Blended(getRawFont(), value.c_str(), weightSpec.color));
@@ -323,7 +330,7 @@ bool SDLManager::checkWeight(int weight) {
   // Set when parameters match
   static int previousWeight{};
 
-  if (weight > SDLGraphicsCfg::MAX_WEIGHT) {
+  if (weight > Graphics::SDLGraphicsCfg::MAX_WEIGHT) {
     return false;
   }
 
@@ -400,8 +407,8 @@ void SDLManager::setRenderingColor(Uint8 r, Uint8 g, Uint8 b) {
   SDL_SetRenderDrawColor(getRawRenderer(), r, g, b, SDL_ALPHA_OPAQUE);
 }
 
-void SDLManager::setSurfacePosition(SDLSurfaceSpec *surface, Uint16 x, Uint16 y,
-                                    Uint16 w, Uint16 h) {
+void SDLManager::setSurfacePosition(Graphics::SDLSurfaceSpec *surface, Uint16 x,
+                                    Uint16 y, Uint16 w, Uint16 h) {
   // Standard white color
   surface->color.a = 255;
   surface->color.r = 255;
@@ -413,9 +420,8 @@ void SDLManager::setSurfacePosition(SDLSurfaceSpec *surface, Uint16 x, Uint16 y,
   surface->rect.w = w;
   surface->rect.h = h;
 }
-
 void SDLManager::setMessagePositionOf(const std::vector<std::string> &strings,
-                                      std::vector<SDLMessage> &vec) {
+                                      std::vector<Graphics::SDLMessage> &vec) {
   int lineSpacing = 50;
 
   for (size_t group = 0; group < vec.size(); group += 2) {
@@ -425,7 +431,8 @@ void SDLManager::setMessagePositionOf(const std::vector<std::string> &strings,
 
     int totalHeight = charHeightTop + charHeightBottom + lineSpacing;
 
-    int startY = ((SDLGraphicsCfg::WINDOW_HEIGHT - totalHeight) / 2) - 200;
+    int startY =
+        ((Graphics::SDLGraphicsCfg::WINDOW_HEIGHT - totalHeight) / 2) - 200;
 
     for (size_t i = 0; i < 2 && (group + i) < vec.size(); ++i) {
 
@@ -445,7 +452,7 @@ void SDLManager::setMessagePositionOf(const std::vector<std::string> &strings,
       vec[idx].spec.rect.h = charHeight;
 
       vec[idx].spec.rect.x =
-          (SDLGraphicsCfg::WINDOW_WIDTH - vec[idx].spec.rect.w) / 2;
+          (Graphics::SDLGraphicsCfg::WINDOW_WIDTH - vec[idx].spec.rect.w) / 2;
 
       vec[idx].spec.rect.y = startY;
 
@@ -467,13 +474,13 @@ int SDLManager::checkLengthOfWeight(int weight) {
 void SDLManager::setWeightWidth(int weight) {
   int length = checkLengthOfWeight(weight);
 
-  weightWidth = SDLGraphicsCfg::WEIGHT_CHAR_SIZE * length;
+  weightWidth = Graphics::SDLGraphicsCfg::WEIGHT_CHAR_SIZE * length;
 
-  weightX =
-      ((SDLGraphicsCfg::WINDOW_WIDTH / 2) + weightWidth / 2) - weightWidth;
+  weightX = ((Graphics::SDLGraphicsCfg::WINDOW_WIDTH / 2) + weightWidth / 2) -
+            weightWidth;
 
-  setSurfacePosition(&weightSpec, weightX, SDLGraphicsCfg::WEIGHT_Y,
-                     weightWidth, SDLGraphicsCfg::WEIGHT_HEIGHT);
+  setSurfacePosition(&weightSpec, weightX, Graphics::SDLGraphicsCfg::WEIGHT_Y,
+                     weightWidth, Graphics::SDLGraphicsCfg::WEIGHT_HEIGHT);
 }
 
 SDL_Window *SDLManager::getRawWindow() const { return window.get(); }

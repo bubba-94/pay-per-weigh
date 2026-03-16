@@ -11,7 +11,8 @@ Take over the Raspberry Monitor opening a terminal that renderes graphics [SDL2 
 - [x] Render a QR code if possible, start with JPEG and later retrive endpoint from an API
 - [x] Colors
 - [x] Text
-- [] Intergration with Swish API
+- [x] Integration with [(mock Swish API)](https://github.com/bubba-94/swish-mock/blob/main/README.md).
+- [] New feature
 
 ## Building 
 

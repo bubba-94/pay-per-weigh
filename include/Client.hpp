@@ -1,6 +1,9 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include "States.hpp"
+
+#include <chrono>
 #include <cstdint>
 #include <iostream>
 #include <mutex>
@@ -21,20 +24,30 @@ class Client {
 public:
   Client(const std::string &path, int port);
   ~Client();
-  void pollStatus();
-  bool getPaymentStatus();
-  void postNewPaymentRequest();
-  void checkStatusOfPaymentId();
+  void postNewTestPaymentRequest();
+#ifdef RPI
+  States::PaymentData &getPayment();
+#endif
 
 private:
+  void pollStatus();
+  void checkStatusOfPaymentId();
   // Evaluate with response from getStatus()
   std::thread worker;
-  std::atomic<int> paymentId = 0;
   std::atomic<bool> state;
   std::atomic<bool> statusSent = false;
   std::atomic<bool> paymentSuccessful = false;
+
+  // Timer
+  bool timer = false;
+  std::chrono::steady_clock::time_point tp;
+
   std::mutex dataMtx;
   httplib::Client client;
+#ifdef RPI
+  // Should have a vector of payments
+  States::PaymentData payment;
+#endif
 };
 
 #endif

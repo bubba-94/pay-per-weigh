@@ -1,6 +1,8 @@
-#include "Device.hpp"
+#include "RasbPi/Device.hpp"
 
 #include <iomanip>
+
+using namespace RasbPi;
 
 Device::Device(const std::string &port) : state{true} {
   if (!connectToPort(port.c_str())) {
