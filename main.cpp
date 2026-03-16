@@ -14,7 +14,6 @@ int main() {
 
   while (ppw.getStatus()) {
 #ifdef RPI
-    // Forward a refrernce of the client to Application.
     ppw.update(input, client.getPayment());
 #endif
   }
