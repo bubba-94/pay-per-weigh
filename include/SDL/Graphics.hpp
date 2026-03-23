@@ -16,7 +16,7 @@ class Graphics {
   };
 
 public:
-  Graphics(WindowRenderer &renderer);
+  Graphics(WindowRenderer &renderer, moody::Loggr &loggr);
   ~Graphics();
 
 #ifdef RPI
@@ -33,6 +33,8 @@ public:
 private:
   bool paymentReceived = false;
 
+  moody::Loggr &logger;
+
   StateTimer weightTimer;
   StateTimer paymentTimer;
   StateTimer messageTimer;
@@ -45,7 +47,6 @@ private:
   MessageTexture messages;
 
   RenderState renderStates = RenderState::WELCOME_MESSAGE;
-  FileError graphErr = GRAPHICS;
 };
 }; // namespace SDL
 

@@ -7,6 +7,8 @@
 #include "SDL/Types.hpp"
 #include "SDL/WindowRenderer.hpp"
 
+#include "external-libs/loggr/moody/Loggr.hpp"
+
 #ifdef RPI
 // Raspberry Pi 5
 #include "RasbPi/Device.hpp"
@@ -31,10 +33,13 @@ private:
   /// @brief State of rendering, true == ADMIN MODE PRESENT WEIGHT
   bool admin = false;
 
+  moody::Loggr logger;
+
   /// @brief One application, one window.
   SDL::WindowRenderer window;
   SDL::Graphics graphics;
   SDL::Events events;
+
 #ifdef RPI
   RasbPi::Device device;
   RasbPi::GpioPi gpio;

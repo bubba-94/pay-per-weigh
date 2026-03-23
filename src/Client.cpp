@@ -1,12 +1,16 @@
 #include "Client.hpp"
 
-Client::Client(const std::string &path, int port) : client(path, port) {
+const std::string lf = "Client.cpp";
+
+Client::Client(const std::string &path, int port)
+    : client(path, port),
+      logger("logs", "client", "logs.txt", true, false, true) {
   if (client.is_valid()) {
-    std::cout << "[CLIENT] Initialized\n";
+    logger.log(moody::Loggr::Level::INFO, "CLIENT", "Host initialized", {lf});
     state = true;
   } else
-    std::cout << "[CLIENT] No valid host" << "\n";
-
+    logger.log(moody::Loggr::Level::FATAL, "CLIENT", "No host avaialable",
+               {lf});
   if (state) {
     worker = std::thread(&Client::pollStatus, this);
   }
@@ -51,7 +55,8 @@ void Client::postNewTestPaymentRequest() {
 
   auto res = client.Post(PATH.c_str(), body.dump(4), "application/json");
   if (!res) {
-    std::cout << "[CLIENT] No valid post request\n";
+    logger.log(moody::Loggr::Level::ERROR, "CLIENT", "No valid post request",
+               {lf});
     return;
   } else {
     json response = json::parse(res->body);
@@ -85,7 +90,7 @@ void Client::checkStatusOfPaymentId() {
   // Get the result and populate atmoic string.
   auto res = client.Get(PATH.c_str());
   if (!res) {
-    std::cout << "[CLIENT] No valid get request\n";
+    logger.log(moody::Loggr::Level::ERROR, "CLIENT", "Bad request", {lf});
     return;
   }
   if (res->status == 200) {
@@ -93,8 +98,11 @@ void Client::checkStatusOfPaymentId() {
     json response = json::parse(res->body);
 
     std::string status = response.at("status").get<std::string>();
-    std::cout << "[CLIENT] Payment: " << id << " |  " << status << "\n";
+    std::string errMessage =
+        "PaymentID: " + std::to_string(id) + " | " + status;
+    logger.log(moody::Loggr::Level::INFO, "CLIENT", errMessage, {lf});
     {
+
       std::lock_guard<std::mutex> lock(dataMtx);
 #ifdef RPI
       if (status == VALID_STATUS &&

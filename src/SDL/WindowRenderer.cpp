@@ -2,14 +2,17 @@
 
 using namespace SDL;
 
-WindowRenderer::WindowRenderer(const std::string &title) {
-  std::cout << "[UI] Start initialization" << "\n";
+const std::string lf = "WindowRenderer.cpp";
+
+WindowRenderer::WindowRenderer(const std::string &title, moody::Loggr &logger)
+    : logger{logger} {
+  logger.log(moody::Loggr::Level::INFO, "WINDOW", "Start initialization", {lf});
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
-    Prints::errMsg(winrenErr, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {lf});
   if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG))
-    Prints::errMsg(winrenErr, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {lf});
   if (TTF_Init() < 0)
-    Prints::errMsg(winrenErr, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {lf});
 
   int windowFlags = SDL_WINDOW_SHOWN;
 #ifdef RPI
@@ -23,7 +26,7 @@ WindowRenderer::WindowRenderer(const std::string &title) {
 
   int renderFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
   if (!window)
-    Prints::errMsg(winrenErr, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {lf});
 
   // Assign renderer to window
   renderer.reset(SDL_CreateRenderer(getRawWindow(), -1, renderFlags));
@@ -33,10 +36,11 @@ WindowRenderer::WindowRenderer(const std::string &title) {
     renderer.reset(
         SDL_CreateRenderer(getRawWindow(), -1, SDL_RENDERER_SOFTWARE));
   if (!renderer)
-    Prints::errMsg(winrenErr, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {lf});
 }
 WindowRenderer::~WindowRenderer() {
-  std::cout << "[UI] Application being shutdown...." << "\n";
+  logger.log(moody::Loggr::Level::FATAL, "WINDOW", "Shutting application down",
+             {lf});
 
   // End other libraries before SDL Library
   TTF_Quit();

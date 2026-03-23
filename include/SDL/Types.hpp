@@ -6,6 +6,7 @@
 #include <SDL2/SDL_ttf.h>
 
 /// C++ Standard Library
+#include <array>
 #include <cstdint>
 #include <cstring>
 #include <ctime>
@@ -14,7 +15,6 @@
 #include <memory>
 #include <queue>
 #include <string>
-#include <array>
 #include <vector>
 
 namespace SDL {
@@ -120,8 +120,8 @@ template <> struct SDLDeleter<TTF_Font> {
  * @return Design for a surface
  */
 struct SurfaceSpec {
-  SDL_Color color = {0,0,0,0};
-  SDL_Rect rect = {0,0,0,0};
+  SDL_Color color = {0, 0, 0, 0};
+  SDL_Rect rect = {0, 0, 0, 0};
 };
 
 struct SDLMessage {
@@ -143,28 +143,5 @@ enum FileError : uint8_t {
   TEXTURE,
   GRAPHICS,
 };
-
-namespace Prints {
-
-inline std::string_view fileErrorStr(FileError file) {
-    switch (file) {
-        case APP: return "APP";
-        case WIND_REND: return "WINDOW_RENDERER";
-        case TEXTURE: return "TEXTURE";
-        case GRAPHICS: return "GRAPHICS";
-        default: return "UNKNOWN";
-    }
-}
-
-/**
- * @brief Print out the occured SDL Error
- *
- * @param file Each file owns an enum type
- * @param msg A message provided by SDL_GetError()
- */
-inline void errMsg(FileError file, const std::string &msg){
-  std::cout << "[" << fileErrorStr(file) << "] " << msg << "\n";
-}
-} // namespace Prints
 }; // namespace SDL
 #endif

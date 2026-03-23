@@ -1,15 +1,20 @@
 #include "Application.hpp"
 
+const std::string lf = "Application.cpp";
+
 // Load modules in the right order.
 Application::Application(const std::string &windowTitle,
                          const std::string &port, const std::string &chip)
-    : window(windowTitle), graphics(window)
+    : logger("logs", "app", "info.txt", true, false, true),
+      window(windowTitle, logger), graphics(window, logger)
 #ifdef RPI
       ,
-      device(port), gpio(chip)
+      device(logger, port), gpio(logger, chip)
 #endif
 {
   status = true;
+
+  logger.log(moody::Loggr::Level::INFO, "APP", "Logger initialized", {lf});
 }
 Application::~Application() {
   // Shutdown when requested
