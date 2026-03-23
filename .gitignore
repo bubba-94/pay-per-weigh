@@ -6,6 +6,7 @@ lib/
 libs/
 external-libs/
 test/
+logs/
 
 # Certificates
 certs/
