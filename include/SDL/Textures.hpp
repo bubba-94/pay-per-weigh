@@ -1,5 +1,6 @@
 #ifndef TEXTURES_HPP
 #define TEXTURES_HPP
+#include "../external-libs/loggr/moody/Loggr.hpp"
 #include "Types.hpp"
 
 namespace SDL {
@@ -9,7 +10,8 @@ using MsgVec = std::vector<std::string>;
 class Texture {
 public:
   Texture() = default;
-  Texture(SDL_Renderer *renderer, const std::string &title);
+  Texture(moody::Loggr &logger, SDL_Renderer *renderer,
+          const std::string &title);
   virtual ~Texture() = default;
 
   virtual void load(const std::string &path) = 0;
@@ -20,6 +22,7 @@ public:
   virtual const SurfaceSpec &getSpec() const;
 
 protected:
+  moody::Loggr &logger;
   sdl_unique<SDL_Texture> texture;
   SurfaceSpec spec;
   SDL_Renderer *renderer;
@@ -30,8 +33,8 @@ private:
 
 class ImageTexture : public Texture {
 public:
-  ImageTexture(SDL_Renderer *renderer, const std::string &textureName,
-               const std::string &path);
+  ImageTexture(moody::Loggr &logger, SDL_Renderer *renderer,
+               const std::string &textureName, const std::string &path);
 
 private:
   void load(const std::string &path) override;
@@ -40,8 +43,8 @@ private:
 class FontTexture : public Texture {
 public:
   FontTexture(const std::string &path);
-  FontTexture(SDL_Renderer *renderer, const std::string &textureName,
-              const std::string &path);
+  FontTexture(moody::Loggr &logger, SDL_Renderer *renderer,
+              const std::string &textureName, const std::string &path);
 
   TTF_Font *getRawFont() const;
 
@@ -64,7 +67,8 @@ private:
 
 class MessageTexture {
 public:
-  MessageTexture(SDL_Renderer *renderer, const std::string &path);
+  MessageTexture(moody::Loggr &logger, SDL_Renderer *renderer,
+                 const std::string &path);
   void loadMessages(const std::string &path);
   void setMessagePositionOf(std::vector<std::string> &strings);
 
@@ -74,6 +78,7 @@ public:
   size_t sizeOfMessages() const;
 
 private:
+  moody::Loggr &logger;
   SDL_Renderer *renderer;
   sdl_unique<TTF_Font> font;
   std::vector<SDLMessage> output;

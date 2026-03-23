@@ -302,6 +302,9 @@ private:
   Graphics::StateTimer paymentProcessTimer;
   Graphics::StateTimer messageTimer;
 
+  /// @brief Another bool to stop evaluating previous payment
+  bool paymentReceived = false;
+
   /**
    * @brief State of rendering, present welcome message first.
    */
