@@ -1,6 +1,6 @@
 #include "Application.hpp"
 
-const std::string lf = "Application.cpp";
+const std::string LF = "Application.cpp";
 
 // Load modules in the right order.
 Application::Application(const std::string &windowTitle,
@@ -14,7 +14,7 @@ Application::Application(const std::string &windowTitle,
 {
   status = true;
 
-  logger.log(moody::Loggr::Level::INFO, "APP", "Logger initialized", {lf});
+  logger.log(moody::Loggr::Level::INFO, "APP", "Logger initialized", {LF});
 }
 Application::~Application() {
   // Shutdown when requested

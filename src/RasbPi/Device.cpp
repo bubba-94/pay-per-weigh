@@ -2,13 +2,13 @@
 
 #include <iomanip>
 
-const std::string lf = "Device.hpp";
+const std::string LF = "Device.hpp";
 using namespace RasbPi;
 
 Device::Device(moody::Loggr &logger, const std::string &port)
     : logger{logger}, state{true} {
   if (!connectToPort(port.c_str())) {
-    logger.log(moody::Loggr::Level::INFO, "DEVICE", port + " is open", {lf});
+    logger.log(moody::Loggr::Level::INFO, "DEVICE", port + " is open", {LF});
   }
 
   // Start working threads
@@ -219,14 +219,14 @@ bool Device::connectToPort(const std::string &PORT) {
   fd = open(PORT.c_str(), O_RDWR | O_NOCTTY);
   if (fd < 0) {
     logger.log(moody::Loggr::Level::FATAL, "DEVICE", PORT + " opening failed",
-               {lf});
+               {LF});
     return false;
   }
   struct termios pts;
 
   if (tcgetattr(fd, &pts) != 0) {
     logger.log(moody::Loggr::Level::FATAL, "DEVICE", "Port settings failed",
-               {lf});
+               {LF});
     return false;
   }
   // Terminal confiuration instance
@@ -234,11 +234,11 @@ bool Device::connectToPort(const std::string &PORT) {
 
   if (tcsetattr(fd, TCSANOW, &pts) != 0) {
     logger.log(moody::Loggr::Level::FATAL, "DEVICE",
-               "New port settings not successful", {lf});
+               "New port settings not successful", {LF});
     return false;
   }
 
-  logger.log(moody::Loggr::Level::INFO, "DEVICE", PORT + " is open.", {lf});
+  logger.log(moody::Loggr::Level::INFO, "DEVICE", PORT + " is open.", {LF});
 
   return true;
 }

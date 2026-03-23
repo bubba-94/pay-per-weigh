@@ -2,7 +2,7 @@
 
 using namespace SDL;
 
-const std::string lf = "Textures.cpp";
+const std::string LF = "Textures.cpp";
 //  ======CONSTRUCTORS=========
 
 Texture::Texture(moody::Loggr &logger, SDL_Renderer *renderer,
@@ -59,11 +59,11 @@ void ImageTexture::load(const std::string &path) {
 
   surface.reset(IMG_Load(path.c_str()));
   if (!surface)
-    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
   texture.reset(SDL_CreateTextureFromSurface(renderer, surface.get()));
   if (!texture)
-    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 }
 
 // ============FONT TEXTURE==============
@@ -78,18 +78,18 @@ void FontTexture::load(const std::string &path) {
   font.reset(TTF_OpenFont(path.c_str(), 300));
 
   if (!font)
-    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
   const std::string VALUE = "0";
 
   surface.reset(TTF_RenderUTF8_Solid(font.get(), VALUE.c_str(), spec.color));
 
   if (!surface)
-    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
   texture.reset(SDL_CreateTextureFromSurface(renderer, surface.get()));
   if (!texture)
-    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 }
 
 // Check if weight needs an update
@@ -103,7 +103,7 @@ bool FontTexture::check(int newWeight) {
   if (newWeight != previousWeight) {
     previousWeight = newWeight;
     logger.log(moody::Loggr::Level::INFO, "TEXTURES",
-               "New weight: " + std::to_string(newWeight), {lf});
+               "New weight: " + std::to_string(newWeight), {LF});
     return true;
   }
 
@@ -119,7 +119,7 @@ bool FontTexture::check(std::string_view currentTimepoint) {
     return false;
   } else {
     previousTimepoint = currentTimepoint;
-    logger.log(moody::Loggr::Level::INFO, "TEXTURES", previousTimepoint, {lf});
+    logger.log(moody::Loggr::Level::INFO, "TEXTURES", previousTimepoint, {LF});
     return true;
   }
 }
@@ -138,11 +138,11 @@ void FontTexture::update(int newWeight) {
   surface.reset(
       TTF_RenderUTF8_Blended(getRawFont(), value.c_str(), spec.color));
   if (!surface)
-    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
   texture.reset(SDL_CreateTextureFromSurface(renderer, surface.get()));
   if (!texture)
-    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 }
 
 // Update if check is true
@@ -153,12 +153,12 @@ void FontTexture::update(std::string_view currentTimepoint) {
   surface.reset(
       TTF_RenderUTF8_Solid(getRawFont(), timepoint.c_str(), spec.color));
   if (!surface)
-    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
   texture.reset(SDL_CreateTextureFromSurface(renderer, surface.get()));
 
   if (!texture) {
-    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
   }
 }
 
@@ -211,7 +211,7 @@ void MessageTexture::loadMessages(const std::string &path) {
   font.reset(TTF_OpenFont(path.c_str(), 300));
 
   if (!font)
-    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
   // For loading into memory, discarded later
   MsgVec tempStrings = {"WELCOME", "PAY-PER-WEIGH", "PROCESSING", "PAYMENT"};
@@ -229,13 +229,13 @@ void MessageTexture::loadMessages(const std::string &path) {
     surface.reset(TTF_RenderUTF8_Blended(font.get(), tempStrings[i].c_str(),
                                          output[i].spec.color));
     if (!surface)
-      logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {lf});
+      logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
     output[i].texture.reset(
         SDL_CreateTextureFromSurface(renderer, surface.get()));
 
     if (!output[i].texture)
-      logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {lf});
+      logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
   }
 }
 

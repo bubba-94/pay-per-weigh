@@ -2,17 +2,17 @@
 
 using namespace SDL;
 
-const std::string lf = "WindowRenderer.cpp";
+const std::string LF = "WindowRenderer.cpp";
 
 WindowRenderer::WindowRenderer(const std::string &title, moody::Loggr &logger)
     : logger{logger} {
-  logger.log(moody::Loggr::Level::INFO, "WINDOW", "Start initialization", {lf});
+  logger.log(moody::Loggr::Level::INFO, "WINDOW", "Start initialization", {LF});
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
-    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {LF});
   if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG))
-    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {LF});
   if (TTF_Init() < 0)
-    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {LF});
 
   int windowFlags = SDL_WINDOW_SHOWN;
 #ifdef RPI
@@ -26,7 +26,7 @@ WindowRenderer::WindowRenderer(const std::string &title, moody::Loggr &logger)
 
   int renderFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
   if (!window)
-    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {LF});
 
   // Assign renderer to window
   renderer.reset(SDL_CreateRenderer(getRawWindow(), -1, renderFlags));
@@ -36,11 +36,11 @@ WindowRenderer::WindowRenderer(const std::string &title, moody::Loggr &logger)
     renderer.reset(
         SDL_CreateRenderer(getRawWindow(), -1, SDL_RENDERER_SOFTWARE));
   if (!renderer)
-    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {lf});
+    logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {LF});
 }
 WindowRenderer::~WindowRenderer() {
   logger.log(moody::Loggr::Level::FATAL, "WINDOW", "Shutting application down",
-             {lf});
+             {LF});
 
   // End other libraries before SDL Library
   TTF_Quit();

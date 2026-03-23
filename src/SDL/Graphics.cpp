@@ -2,7 +2,7 @@
 
 using namespace SDL;
 
-const std::string lf = "Graphics.cpp";
+const std::string LF = "Graphics.cpp";
 
 //  ======CONSTRUCTORS=========
 
@@ -36,7 +36,7 @@ Graphics::Graphics(WindowRenderer &renderer, moody::Loggr &logger)
   messageTimer.state = false;
 
   logger.log(moody::Loggr::Level::INFO, "GRAPHICS", "Textures intiliazed",
-             {lf});
+             {LF});
 }
 
 Graphics::~Graphics(){};
