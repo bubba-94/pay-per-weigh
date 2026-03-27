@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(PAY-PER-WEIGH LANGUAGES CXX)
 
-set(DEBUG_FLAGS "-Wall -Wextra -g")
+set(DEBUG_FLAGS "-Wall -Wextra -g -O2 -fno-omit-frame-pointer")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DEBUG_FLAGS}")
 
@@ -189,7 +189,7 @@ target_link_libraries(pay-per-weigh PRIVATE
 
 if(RPI)
     target_link_libraries(pay-per-weigh 
-        PRIVATE 
+        PRIVATE
             ${GPIOD_CXX_LIBRARY} 
             ${GPIOD_C_LIBRARY}
             )

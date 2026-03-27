@@ -1,3 +1,4 @@
+#ifdef RPI
 #ifndef DEVICE_HPP
 #define DEVICE_HPP
 
@@ -261,4 +262,6 @@ private:
 
 }; // namespace RasbPi
 
-#endif
+#endif // header guard
+
+#endif // RPI
