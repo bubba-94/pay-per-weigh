@@ -1,3 +1,4 @@
+#ifdef RPI
 #include "RasbPi/Device.hpp"
 
 #include <iomanip>
@@ -271,3 +272,5 @@ void Device::configureSerial(termios &settings) {
   cfsetispeed(&settings, B2400);
   cfsetospeed(&settings, B2400);
 }
+
+#endif // RPI

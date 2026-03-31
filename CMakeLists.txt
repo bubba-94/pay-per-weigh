@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
-project(PAY-PER-WEIGH LANGUAGES CXX)
+set(PROJECT_NAME pay-per-weigh)
+project(${PROJECT_NAME} LANGUAGES CXX)
 
 set(DEBUG_FLAGS "-Wall -Wextra -g -O2 -fno-omit-frame-pointer")
 set(CMAKE_CXX_STANDARD 17)
@@ -39,7 +40,6 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
         message(STATUS "Binary output directory = ${OUTPUT_DIR}")
         set(TOOLCHAIN_PRINTED TRUE CACHE INTERNAL "Prevent toolchain output twice")
     endif()
-
     list(APPEND CMAKE_PREFIX_PATH 
         ${SDL2_image_PATH}
         ${SDL2_ttf_PATH} 
@@ -72,6 +72,11 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
     message(STATUS ${ENDYELLOW})
 
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+
+    list(APPEND CMAKE_PREFIX_PATH 
+        ${SYSROOT}/usr/lib/cmake/SDL2
+        ${SYSROOT}/usr/lib/cmake/libcamera
+    )
 
     # Locate _real_config.h
     find_path(SDL2_INCLUDE_DIR
@@ -130,6 +135,19 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
         INTERFACE_INCLUDE_DIRECTORIES ${SDL2_TTF_INCLUDE_DIR}
     )
 
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(LIBCAM REQUIRED libcamera)
+    add_library(libcamera::libcamera INTERFACE IMPORTED)
+
+    target_include_directories(libcamera::libcamera INTERFACE
+        ${LIBCAM_INCLUDE_DIRS}
+    )
+
+    target_link_libraries(libcamera::libcamera INTERFACE
+        ${LIBCAM_LIBRARIES}
+    )
+
+
     find_library(GPIOD_CXX_LIBRARY
         NAMES gpiodcxx
         HINTS "${SYSROOT}/usr/lib/aarch64-linux-gnu" 
@@ -157,14 +175,14 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
         message(STATUS "Source files directory  = ${SRC_DIR}" )
         message(STATUS "Headers directory       = ${INCLUDE_DIR}")
         message(STATUS "Binary output directory = ${OUTPUT_DIR}")
-        message(STATUS "SDL2 sysroot lib        = ${SDL2_LIBRARY}")
-        message(STATUS "SDL2 include dir        = ${SDL2_INCLUDE_DIR}")
+        message(STATUS "External libraries:")
+        message(STATUS "SDL2 lib                = ${SDL2_LIBRARY}")
+        message(STATUS "SDL2 headers            = ${SDL2_INCLUDE_DIR}")
+        message(STATUS "gpiod lib               = ${GPIOD_CXX_LIBRARY}")
+        message(STATUS "libcamera headers       = ${LIBCAM_INCLUDE_DIRS}")
         
         set(TOOLCHAIN_PRINTED TRUE CACHE INTERNAL "Prevent toolchain print twice")
     endif()
-
-    # Make CMake look in sysroot for SDL2
-    set(CMAKE_PREFIX_PATH "${SYSROOT}/usr/lib/cmake/SDL2" ${CMAKE_PREFIX_PATH})
 
     message(STATUS ${ENDGREEN})
 endif() 
@@ -184,11 +202,11 @@ add_executable(pay-per-weigh main.cpp)
 # Link the library defined in src/CMakeLists.txt
 target_link_libraries(pay-per-weigh PRIVATE 
         ${ARCHIVE}
-        nlohmann_json::nlohmann_json
+            nlohmann_json::nlohmann_json
         )
 
 if(RPI)
-    target_link_libraries(pay-per-weigh 
+    target_link_libraries(${PROJECT_NAME} 
         PRIVATE
             ${GPIOD_CXX_LIBRARY} 
             ${GPIOD_C_LIBRARY}
