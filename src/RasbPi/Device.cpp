@@ -1,12 +1,15 @@
+#ifdef RPI
 #include "RasbPi/Device.hpp"
 
 #include <iomanip>
 
+const std::string LF = "Device.hpp";
 using namespace RasbPi;
 
-Device::Device(const std::string &port) : state{true} {
+Device::Device(moody::Loggr &logger, const std::string &port)
+    : logger{logger}, state{true} {
   if (!connectToPort(port.c_str())) {
-    std::cout << "[DEVICE] Port connection failed\n";
+    logger.log(moody::Loggr::Level::INFO, "DEVICE", port + " is open", {LF});
   }
 
   // Start working threads
@@ -204,8 +207,6 @@ void Device::setTime(const int DELAY_MS) {
     auto nextMinute = std::chrono::time_point_cast<std::chrono::minutes>(now) +
                       std::chrono::minutes(1);
 
-    std::cout << "[DEVICE] " << timeString << "\n";
-
     // Shorten the sleep if needed. (shutdown)
     while (state.load() && std::chrono::system_clock::now() < nextMinute) {
       std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_MS));
@@ -218,24 +219,27 @@ bool Device::connectToPort(const std::string &PORT) {
   // Open port before configuration
   fd = open(PORT.c_str(), O_RDWR | O_NOCTTY);
   if (fd < 0) {
-    std::cout << "[DEVICE] Port opening failed\n";
+    logger.log(moody::Loggr::Level::FATAL, "DEVICE", PORT + " opening failed",
+               {LF});
     return false;
   }
   struct termios pts;
 
   if (tcgetattr(fd, &pts) != 0) {
-    std::cout << "[DEVICE] Existing settings not read\n";
+    logger.log(moody::Loggr::Level::FATAL, "DEVICE", "Port settings failed",
+               {LF});
     return false;
   }
   // Terminal confiuration instance
   configureSerial(pts);
 
   if (tcsetattr(fd, TCSANOW, &pts) != 0) {
-    std::cout << "[DEVICE] Saving new setting not successful";
+    logger.log(moody::Loggr::Level::FATAL, "DEVICE",
+               "New port settings not successful", {LF});
     return false;
   }
 
-  std::cout << "[DEVICE] " << PORT << " is open." << "\n";
+  logger.log(moody::Loggr::Level::INFO, "DEVICE", PORT + " is open.", {LF});
 
   return true;
 }
@@ -268,3 +272,5 @@ void Device::configureSerial(termios &settings) {
   cfsetispeed(&settings, B2400);
   cfsetospeed(&settings, B2400);
 }
+
+#endif // RPI

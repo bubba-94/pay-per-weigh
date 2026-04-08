@@ -2,19 +2,22 @@
 
 using namespace SDL;
 
+const std::string LF = "Graphics.cpp";
+
 //  ======CONSTRUCTORS=========
 
 // Creates the needed textures for application
 // Change paths here if different images or fonts are wanted
-Graphics::Graphics(WindowRenderer &renderer)
-    : qr(renderer.getRawRenderer(), "QR Code", "assets/img/qr.png"),
-      logo(renderer.getRawRenderer(), "Logo", "assets/img/pandema.png"),
-      weight(renderer.getRawRenderer(), "Weight",
+Graphics::Graphics(WindowRenderer &renderer, moody::Loggr &logger)
+    : logger{logger},
+      qr(logger, renderer.getRawRenderer(), "QR Code", "assets/img/qr.png"),
+      logo(logger, renderer.getRawRenderer(), "Logo", "assets/img/pandema.png"),
+      weight(logger, renderer.getRawRenderer(), "Weight",
              "assets/fonts/Lato-Light.ttf"),
-      timepoint(renderer.getRawRenderer(), "Timepoint",
+      timepoint(logger, renderer.getRawRenderer(), "Timepoint",
                 "assets/fonts/Lato-Light.ttf"),
-      renderer(renderer),
-      messages(renderer.getRawRenderer(), "assets/fonts/Lato-Light.ttf") {
+      renderer(renderer), messages(logger, renderer.getRawRenderer(),
+                                   "assets/fonts/Lato-Light.ttf") {
 
   logo.setPosition(GraphicsCfg::LOGO_X, GraphicsCfg::LOGO_Y,
                    GraphicsCfg::LOGO_WIDTH, GraphicsCfg::LOGO_HEIGHT);
@@ -32,7 +35,8 @@ Graphics::Graphics(WindowRenderer &renderer)
   paymentTimer.state = false;
   messageTimer.state = false;
 
-  std::cout << "[UI] Initialized\n";
+  logger.log(moody::Loggr::Level::INFO, "GRAPHICS", "Textures intiliazed",
+             {LF});
 }
 
 Graphics::~Graphics(){};

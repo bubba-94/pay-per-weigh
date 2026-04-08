@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "external-libs/httplib.h"
+#include "external-libs/loggr/moody/Loggr.hpp"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -42,8 +43,10 @@ private:
   bool timer = false;
   std::chrono::steady_clock::time_point tp;
 
-  std::mutex dataMtx;
   httplib::Client client;
+  moody::Loggr logger;
+
+  std::mutex dataMtx;
 #ifdef RPI
   // Should have a vector of payments
   States::PaymentData payment;

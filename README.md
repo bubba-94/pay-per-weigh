@@ -5,13 +5,14 @@
 Take over the Raspberry Monitor opening a terminal that renderes graphics [SDL2 Library](https://wiki.libsdl.org/SDL3/FrontPage).
 
 **Options:**
-[] Boot terminal when Raspberry Pi starts
-[x] Fullscreen / borderless
-[x] Render a picture 
-[x] Render a QR code if possible, start with JPEG and later retrive endpoint from an API
-[x] Colors
-[x] Text
-[x] Integration with [(mock Swish API)](https://github.com/bubba-94/swish-mock/blob/main/README.md).
+- [] Boot terminal when Raspberry Pi starts
+- [x] Fullscreen / borderless
+- [x] Render a picture 
+- [x] Render a QR code if possible, start with JPEG and later retrive endpoint from an API
+- [x] Colors
+- [x] Text
+- [x] Integration with [(mock Swish API)](https://github.com/bubba-94/swish-mock/blob/main/README.md).
+- [] New feature
 
 ## Building 
 
@@ -52,6 +53,9 @@ socat \
   pty,raw,echo=0,link=/tmp/ttyRS232_A \
   pty,raw,echo=0,link=/tmp/ttyRS232_B &'
 ```
+### Profile on ARM binary
+ 
+- `perf report` to view the data from from the profiler (requires a generated perf.data)
 
 ### Test program for writing analog value to the Pi via Serial 
 

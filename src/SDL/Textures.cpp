@@ -2,28 +2,31 @@
 
 using namespace SDL;
 
+const std::string LF = "Textures.cpp";
 //  ======CONSTRUCTORS=========
 
-Texture::Texture(SDL_Renderer *renderer, const std::string &title)
-    : renderer(renderer), TITLE(title) {}
+Texture::Texture(moody::Loggr &logger, SDL_Renderer *renderer,
+                 const std::string &title)
+    : logger{logger}, renderer(renderer), TITLE(title) {}
 
 // Constructor for other Textures
-ImageTexture::ImageTexture(SDL_Renderer *renderer,
+ImageTexture::ImageTexture(moody::Loggr &logger, SDL_Renderer *renderer,
                            const std::string &textureTitle,
                            const std::string &path)
-    : Texture(renderer, textureTitle) {
+    : Texture(logger, renderer, textureTitle) {
   load(path);
 }
 
-FontTexture::FontTexture(SDL_Renderer *renderer,
+FontTexture::FontTexture(moody::Loggr &logger, SDL_Renderer *renderer,
                          const std::string &textureTitle,
                          const std::string &path)
-    : Texture(renderer, textureTitle) {
+    : Texture(logger, renderer, textureTitle) {
   load(path);
 }
 
-MessageTexture::MessageTexture(SDL_Renderer *renderer, const std::string &path)
-    : renderer(renderer) {
+MessageTexture::MessageTexture(moody::Loggr &logger, SDL_Renderer *renderer,
+                               const std::string &path)
+    : logger{logger}, renderer(renderer) {
   loadMessages(path);
 }
 
@@ -56,11 +59,11 @@ void ImageTexture::load(const std::string &path) {
 
   surface.reset(IMG_Load(path.c_str()));
   if (!surface)
-    Prints::errMsg(FileError::TEXTURE, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
   texture.reset(SDL_CreateTextureFromSurface(renderer, surface.get()));
   if (!texture)
-    Prints::errMsg(FileError::TEXTURE, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 }
 
 // ============FONT TEXTURE==============
@@ -75,18 +78,18 @@ void FontTexture::load(const std::string &path) {
   font.reset(TTF_OpenFont(path.c_str(), 300));
 
   if (!font)
-    Prints::errMsg(FileError::TEXTURE, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
   const std::string VALUE = "0";
 
   surface.reset(TTF_RenderUTF8_Solid(font.get(), VALUE.c_str(), spec.color));
 
   if (!surface)
-    Prints::errMsg(FileError::TEXTURE, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
   texture.reset(SDL_CreateTextureFromSurface(renderer, surface.get()));
   if (!texture)
-    Prints::errMsg(FileError::TEXTURE, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 }
 
 // Check if weight needs an update
@@ -99,7 +102,8 @@ bool FontTexture::check(int newWeight) {
 
   if (newWeight != previousWeight) {
     previousWeight = newWeight;
-    std::cout << "[SDL] New weight: " << newWeight << "\n";
+    logger.log(moody::Loggr::Level::INFO, "TEXTURES",
+               "New weight: " + std::to_string(newWeight), {LF});
     return true;
   }
 
@@ -115,6 +119,7 @@ bool FontTexture::check(std::string_view currentTimepoint) {
     return false;
   } else {
     previousTimepoint = currentTimepoint;
+    logger.log(moody::Loggr::Level::INFO, "TEXTURES", previousTimepoint, {LF});
     return true;
   }
 }
@@ -133,11 +138,11 @@ void FontTexture::update(int newWeight) {
   surface.reset(
       TTF_RenderUTF8_Blended(getRawFont(), value.c_str(), spec.color));
   if (!surface)
-    Prints::errMsg(FileError::TEXTURE, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
   texture.reset(SDL_CreateTextureFromSurface(renderer, surface.get()));
   if (!texture)
-    Prints::errMsg(FileError::TEXTURE, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 }
 
 // Update if check is true
@@ -148,12 +153,12 @@ void FontTexture::update(std::string_view currentTimepoint) {
   surface.reset(
       TTF_RenderUTF8_Solid(getRawFont(), timepoint.c_str(), spec.color));
   if (!surface)
-    Prints::errMsg(FileError::TEXTURE, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
   texture.reset(SDL_CreateTextureFromSurface(renderer, surface.get()));
 
   if (!texture) {
-    Prints::errMsg(FileError::TEXTURE, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
   }
 }
 
@@ -206,7 +211,7 @@ void MessageTexture::loadMessages(const std::string &path) {
   font.reset(TTF_OpenFont(path.c_str(), 300));
 
   if (!font)
-    Prints::errMsg(FileError::TEXTURE, SDL_GetError());
+    logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
   // For loading into memory, discarded later
   MsgVec tempStrings = {"WELCOME", "PAY-PER-WEIGH", "PROCESSING", "PAYMENT"};
@@ -224,13 +229,13 @@ void MessageTexture::loadMessages(const std::string &path) {
     surface.reset(TTF_RenderUTF8_Blended(font.get(), tempStrings[i].c_str(),
                                          output[i].spec.color));
     if (!surface)
-      Prints::errMsg(FileError::TEXTURE, SDL_GetError());
+      logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
 
     output[i].texture.reset(
         SDL_CreateTextureFromSurface(renderer, surface.get()));
 
     if (!output[i].texture)
-      Prints::errMsg(FileError::TEXTURE, SDL_GetError());
+      logger.log(moody::Loggr::Level::ERROR, "TEXTURE", SDL_GetError(), {LF});
   }
 }
 

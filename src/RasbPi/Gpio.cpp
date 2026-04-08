@@ -1,14 +1,16 @@
 #include "RasbPi/Gpio.hpp"
 
 #ifdef RPI
+const std::string lf = "Gpio.hpp";
 
 using namespace RasbPi;
 
-GpioPi::GpioPi(const std::string &path) {
+GpioPi::GpioPi(moody::Loggr &logger, const std::string &path) : logger{logger} {
   gpiod::chip chip(path);
 
   if (!chip) {
-    std::cerr << "[GPIO] Error opening " << path << "\n";
+    logger.log(moody::Loggr::Level::ERROR, "GPIO", "Error opening: " + path,
+               {lf});
   }
 
   gpiod::request_builder builder = chip.prepare_request();
@@ -17,11 +19,13 @@ GpioPi::GpioPi(const std::string &path) {
 
   request = builder.do_request();
 
-  std::cout << "[GPIO] Offset " << static_cast<unsigned int>(LogicalPin::KEY)
-            << " initialized\n";
-  std::cout << "[GPIO] Offset "
-            << static_cast<unsigned int>(LogicalPin::SHUTDOWN)
-            << " initialized\n";
+  unsigned int castKey = static_cast<unsigned int>(LogicalPin::KEY);
+  unsigned int castShutdown = static_cast<unsigned int>(LogicalPin::SHUTDOWN);
+
+  logger.log(moody::Loggr::Level::INFO, "GPIO",
+             "Offset: " + std::to_string(castKey) + " initialized", {lf});
+  logger.log(moody::Loggr::Level::INFO, "GPIO",
+             "Offset: " + std::to_string(castShutdown) + " initialized", {lf});
 }
 
 GpioPi::~GpioPi() {}
@@ -75,14 +79,13 @@ void GpioPi::setup(gpiod::request_builder &builder) {
 
 void GpioPi::handleShutdown(const gpiod::edge_event &event) {
   // If event buffer is populated
-    state.shutdownRequested =
+  state.shutdownRequested =
       event.type() == gpiod::edge_event::event_type::RISING_EDGE;
 }
 
 void GpioPi::handleKey(const gpiod::edge_event &event) {
   // If event buffer is populated
   state.keyEnabled = event.type() == gpiod::edge_event::event_type::RISING_EDGE;
-  
 }
 
 #endif
