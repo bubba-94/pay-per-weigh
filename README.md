@@ -5,22 +5,23 @@
 Take over the Raspberry Monitor opening a terminal that renderes graphics [SDL2 Library](https://wiki.libsdl.org/SDL3/FrontPage).
 
 **Options:**
-- [] Boot terminal when Raspberry Pi starts
-- [x] Fullscreen / borderless
-- [x] Render a picture 
-- [x] Render a QR code if possible, start with JPEG and later retrive endpoint from an API
-- [x] Colors
-- [x] Text
-- [x] Integration with [(mock Swish API)](https://github.com/bubba-94/swish-mock/blob/main/README.md).
-- [] New feature
+[] Boot terminal when Raspberry Pi starts
+[x] Fullscreen / borderless
+[x] Render a picture 
+[x] Render a QR code if possible, start with JPEG and later retrive endpoint from an API
+[x] Colors
+[x] Text
+[x] Integration with [(mock Swish API)](https://github.com/bubba-94/swish-mock/blob/main/README.md).
 
 ## Building 
 
 ### Prerequisites
 
-- Sysroots of target headers
+A list of libraries are coming. 
+
+- Sysroots of target headers.
 - Pre installed libraries SDL2, SDL2 image, SDL2 ttf.
-- Using Drogon as web Framework.
+- gpiod for gpio manipulation
 
 build.sh will build and compile executables for both PC and Pi 5 and gather them under separate architecture folders under bin/
 
