@@ -7,7 +7,7 @@ add_library(${ARCHIVE}
     SDL/Graphics.cpp
     RasbPi/Device.cpp
     RasbPi/Gpio.cpp
-    Camera/Type.cpp
+    RasbPi/Camera.cpp
     Client.cpp
     Application.cpp
 )

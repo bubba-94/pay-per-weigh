@@ -3,7 +3,7 @@
 
 using namespace RasbPi;
 
-Manager::Manager() {}
-Manager::~Manager() {}
+Camera::Camera() {}
+Camera::~Camera() {}
 
 #endif
