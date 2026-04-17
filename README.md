@@ -1,110 +1,112 @@
-# Takeover
+# pay-per-weigh
 
-## Description
+## Overview
 
-Take over the Raspberry Monitor opening a terminal that renderes graphics [SDL2 Library](https://wiki.libsdl.org/SDL3/FrontPage).
+`pay-per-weigh` is an internship project and a cross-platform graphical application targeting Raspberry Pi 5 devices. It uses SDL2 to render a fullscreen kiosk-style interface, integrates with a payment request API, and supports Pi-specific GPIO and serial device handling.
 
-**Options:**
-[ ] Boot terminal when Raspberry Pi starts
-[x] Fullscreen / borderless
-[x] Render a picture 
-[x] Render a QR code if possible, start with JPEG and later retrive endpoint from an API
-[x] Colors
-[x] Text
-[x] Integration with [(mock Swish API)](https://github.com/bubba-94/swish-mock/blob/main/README.md).
-[x] Add perf profiler 
-[ ] New feature
+## What it does
 
-## Building 
+- Renders graphics and text. 
+- Displays weight/status information on screen.
+- Possibility to interact with a payment service.
+- Supports Raspberry Pi GPIO and device I/O.
 
-### Prerequisites
+## Features
 
-- Sysroots of target headers
-- Pre installed libraries SDL2, SDL2 image, SDL2 ttf.
-- Using Drogon as web Framework.
+- Fullscreen / borderless display
+- Image rendering
+- QR code rendering(no logic) / endpoint rendering support
+- Color and text rendering
+- Payment API integration lightweight [mock Swish API](https://github.com/bubba-94/swish-mock)
+- Performance profiling support
 
-build.sh will build and compile executables for both PC and Pi 5 and gather them under separate architecture folders under bin/
+## Repository structure
+```bash
+pay-per-weigh
+├── Doxyfile                # Config for doxygen
+├── Makefile                # Doxygen makefile
+├── assets                  # PNGs and TTF files
+├── bin                     # Output 
+├── build.py                # Script for building the application
+├── docs                    # Collection of documents
+├── include                 # Header files
+├── src                     # Source files
+├── main.cpp                # Application 
+└── toolchain-aarch64.cmake # Toolchain for building 
+```
 
-## Testing
+## Build requirements
 
-### Testing on the PC 
+- CMake 3.15 or newer
+- C++17-capable compiler
+- **Featured C/C++ libraries**: 
+  - SDL2 
+  - SDL2_image
+  - SDL2_ttf
+  - nlohmann_json
+  - PkgConfig
+  - libcamera (not implemented, only compiles)
+- For Raspberry Pi cross-build: sysroot and toolchain files
 
-- Link for testing against [server](https://github.com/bubba-94/swish-mock/blob/main/README.md)
+## Build instructions
 
-- `./run.sh` from root repo to run the application (requires preinstalled libraries)
+### Using the provided script
 
-- [Dockerfile here](Dockerfile) to run a container with installed libraries. 
-- Docker command after succesful build ([or Docker Hub image found here](https://hub.docker.com/r/moodin/pay-per-weigh)): 
+`./build.py`
+
+
+The resulting binary is placed in:
+
+- `bin/aarch64/pay-per-weigh`
+
+### Cross-build notes
+
+`build.py` relies on environment variables and toolchain files in your home directory:
+
+I have used my own ["SDK"](https://github.com/bubba-94/moody) where i store the sysroot and related libraries locally and scripts/configuartions remotely.
+
+## Running the application
+
+Copy the ARM output to the Pi (binary and archive):
+
+```bash
+scp -r bin/ user@pi:Programs/pay-per-weigh/
+```
+
+>! 
+
+Then run the binary on the Pi.
+
+If the screen is rotated, you can adjust output orientation with:
+
+```bash
+wlr-randr --output HDMI-A-1 --transform 90
+```
+
+## Docker
+
+A published Docker image is available at `moodin/pay-per-weigh:v1.0`.
+
 ```bash
 docker pull moodin/pay-per-weigh:v1.0
 
 docker run -e DISPLAY=$DISPLAY \
-           -it \
-           -v /tmp/.X11-unix:/tmp/.X11-unix \
-           --name pay-per-weigh \
-           moodin/pay-per-weigh:v1.0
+  -it \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  --name pay-per-weigh \
+  moodin/pay-per-weigh:v1.0
 ```
 
+## Testing and profiling
 
-- To create a virtual pair of serial ports.
-```bash
-socat \
-  pty,raw,echo=0,link=/tmp/ttyRS232_A \
-  pty,raw,echo=0,link=/tmp/ttyRS232_B &'
-```
-### Profile on ARM binary
- 
-- `perf report` to view the data from from the profiler (requires a generated perf.data)
+- Test against the payment mock server in the linked Swish mock repository.
+- Use `perf report` to inspect ARM performance data after recording.
 
-### Test program for writing analog value to the Pi via Serial 
+## Notes
 
-- Use for testing the rendering. 
+- `main.cpp` creates an `Application` and a `Client` instance.
+- Graphics and font rendering depend on SDL2 and its image/font extensions.
 
-```cpp
-#include <Arduino.h>
+## License
 
-constexpr int POT = A0;
-
-constexpr int ANALOG_MIN = 0;
-constexpr int ANALOG_MAX = 1023;
-constexpr int WEIGHT_MIN = 0;
-constexpr int WEIGHT_MAX = 15000;
-
-int readValue = 0;
-int convValue = 0;
-
-int readPot();
-
-void setup()
-{
-    Serial.begin(9600);
-    while (!Serial){}
-}
-
-void loop()
-{
-    readValue = readPot();
-    convValue = map(readValue, ANALOG_MIN, ANALOG_MAX, WEIGHT_MIN, WEIGHT_MAX);
-
-    Serial.println(convValue);
-    delay(16);
-}
-
-int readPot() {
-    long sum = 0;
-    const int samples = 100;
-
-    for (int i = 0; i < samples; i++) {
-        sum += analogRead(POT);
-        delayMicroseconds(300);
-    }
-
-    return sum / samples;
-}
-```
-
-### Running on Pi
-
-- Binary with the library is needed
-- Run `scp -r bin/aarch64 user@pi:Programs/pay-per-weigh/` to copy binary and library to Pi.
-- Turn screen 90 degrees `wlr-randr --output HDMI-A-1 --transform 90`.
+See `LICENSE` for license terms.
