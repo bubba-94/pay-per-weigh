@@ -26,9 +26,7 @@ public:
   Client(const std::string &path, int port);
   ~Client();
   void postNewTestPaymentRequest();
-#ifdef RPI
   States::PaymentData &getPayment();
-#endif
 
 private:
   void pollStatus();
@@ -47,10 +45,9 @@ private:
   moody::Loggr logger;
 
   std::mutex dataMtx;
-#ifdef RPI
+
   // Should have a vector of payments
   States::PaymentData payment;
-#endif
 };
 
 #endif

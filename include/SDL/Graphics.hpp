@@ -5,6 +5,8 @@
 #include "Types.hpp"
 #include "WindowRenderer.hpp"
 
+#include "../States.hpp"
+
 namespace SDL {
 
 class Graphics {
@@ -19,16 +21,12 @@ public:
   Graphics(WindowRenderer &renderer, moody::Loggr &loggr);
   ~Graphics();
 
-#ifdef RPI
   void render(States::AppInput &input, bool admin = false);
-
   void messageState(States::AppInput &input);
   void qrState(States::AppInput &input);
   void paymentState(States::AppInput &input);
   void weightState(States::AppInput &input, bool admin);
-
   void presentLogoAndTime();
-#endif
 
 private:
   bool paymentReceived = false;

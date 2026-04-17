@@ -1,4 +1,3 @@
-#ifdef RPI
 #ifndef STATES_HPP
 #define STATES_HPP
 
@@ -52,4 +51,3 @@ struct AppInput {
 
 }; // namespace States
 #endif
-#endif // ifdef RPI

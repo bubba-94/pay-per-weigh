@@ -14,22 +14,19 @@ WindowRenderer::WindowRenderer(const std::string &title, moody::Loggr &logger)
   if (TTF_Init() < 0)
     logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {LF});
 
-  int windowFlags = SDL_WINDOW_SHOWN;
-#ifdef RPI
-  windowFlags |= (SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN);
-#endif
-
   // Create window from specifics
   window.reset(SDL_CreateWindow(
       title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-      GraphicsCfg::WINDOW_WIDTH, GraphicsCfg::WINDOW_HEIGHT, windowFlags));
+      GraphicsCfg::WINDOW_WIDTH, GraphicsCfg::WINDOW_HEIGHT,
+      SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN));
 
-  int renderFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
   if (!window)
     logger.log(moody::Loggr::Level::ERROR, "WINDOW", SDL_GetError(), {LF});
 
   // Assign renderer to window
-  renderer.reset(SDL_CreateRenderer(getRawWindow(), -1, renderFlags));
+  renderer.reset(
+      SDL_CreateRenderer(getRawWindow(), -1,
+                         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
 
   // Try fallback first
   if (!renderer)

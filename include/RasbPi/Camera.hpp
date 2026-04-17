@@ -1,4 +1,3 @@
-#ifdef RPI
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
@@ -19,4 +18,3 @@ private:
 }; // namespace RasbPi
 
 #endif // CAMERA_HPP
-#endif // RPI

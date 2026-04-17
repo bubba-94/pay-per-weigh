@@ -2,7 +2,7 @@
 #define WINDOWRENDERER_HPP
 
 #include "../external-libs/loggr/moody/Loggr.hpp"
-#include "States.hpp"
+
 #include "Types.hpp"
 
 namespace SDL {

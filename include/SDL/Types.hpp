@@ -26,19 +26,10 @@ namespace SDL {
  * Configuration for the graphical positioning of surfaces.
  */
 namespace GraphicsCfg {
-// Image paths ()
-#ifdef RPI
 // Windows specs for Raspberry Pi Monitor (standing)
 constexpr Uint16 WINDOW_WIDTH = 1080;
 constexpr Uint16 WINDOW_HEIGHT = 1920;
 constexpr Uint16 WEIGHT_CHAR_SIZE = 200;
-#else
-
-// Windows specs for Dekstop Application ()
-constexpr Uint16 WINDOW_WIDTH = 1920;
-constexpr Uint16 WINDOW_HEIGHT = 1080;
-constexpr Uint16 WEIGHT_CHAR_SIZE = 250;
-#endif
 
 // Surface sizes and limits
 constexpr Uint16 WEIGHT_HEIGHT = 500;

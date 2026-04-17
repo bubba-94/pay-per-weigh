@@ -1,4 +1,3 @@
-#ifdef RPI
 #ifndef GPIO_HPP
 #define GPIO_HPP
 
@@ -81,6 +80,5 @@ enum class LogicalPin : unsigned int {
   KEY = 17,
   SHUTDOWN = 27,
 };
-#endif // HEADER GUARD
 }; // namespace RasbPi
-#endif // ifdef RPI
+#endif // HEADER GUARD
