@@ -1,7 +1,5 @@
 #include "RasbPi/Gpio.hpp"
-
-#ifdef RPI
-const std::string lf = "Gpio.hpp";
+const std::string LF = "Gpio.hpp";
 
 using namespace RasbPi;
 
@@ -10,7 +8,7 @@ GpioPi::GpioPi(moody::Loggr &logger, const std::string &path) : logger{logger} {
 
   if (!chip) {
     logger.log(moody::Loggr::Level::ERROR, "GPIO", "Error opening: " + path,
-               {lf});
+               {LF});
   }
 
   gpiod::request_builder builder = chip.prepare_request();
@@ -23,9 +21,9 @@ GpioPi::GpioPi(moody::Loggr &logger, const std::string &path) : logger{logger} {
   unsigned int castShutdown = static_cast<unsigned int>(LogicalPin::SHUTDOWN);
 
   logger.log(moody::Loggr::Level::INFO, "GPIO",
-             "Offset: " + std::to_string(castKey) + " initialized", {lf});
+             "Offset: " + std::to_string(castKey) + " initialized", {LF});
   logger.log(moody::Loggr::Level::INFO, "GPIO",
-             "Offset: " + std::to_string(castShutdown) + " initialized", {lf});
+             "Offset: " + std::to_string(castShutdown) + " initialized", {LF});
 }
 
 GpioPi::~GpioPi() {}
@@ -87,5 +85,3 @@ void GpioPi::handleKey(const gpiod::edge_event &event) {
   // If event buffer is populated
   state.keyEnabled = event.type() == gpiod::edge_event::event_type::RISING_EDGE;
 }
-
-#endif

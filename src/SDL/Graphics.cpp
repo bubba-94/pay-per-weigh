@@ -41,7 +41,6 @@ Graphics::Graphics(WindowRenderer &renderer, moody::Loggr &logger)
 
 Graphics::~Graphics(){};
 
-#ifdef RPI
 void Graphics::render(States::AppInput &input, bool admin) {
 
   if (weight.check(input.values.weight))
@@ -200,5 +199,3 @@ void Graphics::presentLogoAndTime() {
   SDL_RenderCopy(renderer.getRawRenderer(), timepoint.getTex(), NULL,
                  &timepoint.getSpecRect());
 }
-
-#endif

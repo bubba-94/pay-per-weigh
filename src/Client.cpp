@@ -35,12 +35,10 @@ void Client::pollStatus() {
   }
 }
 
-#ifdef RPI
 States::PaymentData &Client::getPayment() {
   std::lock_guard<std::mutex> lock(dataMtx);
   return payment;
 }
-#endif
 
 void Client::postNewTestPaymentRequest() {
   // Incoming from request / response
@@ -62,9 +60,8 @@ void Client::postNewTestPaymentRequest() {
     json response = json::parse(res->body);
     {
       std::lock_guard<std::mutex> lock(dataMtx);
-#ifdef RPI
+
       payment.id = response["id"].get<int>();
-#endif
     }
   }
 }
@@ -76,9 +73,8 @@ void Client::checkStatusOfPaymentId() {
   int id = 0;
   {
     std::lock_guard<std::mutex> lock(dataMtx);
-#ifdef RPI
+
     id = payment.id;
-#endif
   }
 
   if (id <= 0) {
@@ -104,14 +100,13 @@ void Client::checkStatusOfPaymentId() {
     {
 
       std::lock_guard<std::mutex> lock(dataMtx);
-#ifdef RPI
+
       if (status == VALID_STATUS &&
           payment.status == States::PaymentStatus::NONE) {
 
         paymentSuccessful = true;
         payment.status = States::PaymentStatus::SENT;
       }
-#endif
     }
   }
 }

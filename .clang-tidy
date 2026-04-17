@@ -2,8 +2,6 @@
 Checks: >
   readability-identifier-naming,
   performance-*,
-  clang-analyzer-*,
-  -clang-analyzer-alpha.*   # disable experimental slow checks
   
 # Exclude external libraries (negative lookahead regex)
 HeaderFilterRegex: '^(?!/home/moodin/coding/internship/pay-per-weigh/include/external-libs/).*'

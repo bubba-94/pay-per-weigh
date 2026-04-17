@@ -1,12 +1,11 @@
 # Base style
 BasedOnStyle: Allman
-IndentWidth: 4
+IndentWidth: 2
 ColumnLimit: 100
 UseTab: Space
 
 # Braces
 BreakBeforeBraces: Allman
-
 
 # Naming rules
 DerivePointerAlignment: false

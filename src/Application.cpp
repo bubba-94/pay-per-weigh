@@ -6,12 +6,8 @@ const std::string LF = "Application.cpp";
 Application::Application(const std::string &windowTitle,
                          const std::string &port, const std::string &chip)
     : logger("logs", "app", "info.txt", true, false, true),
-      window(windowTitle, logger), graphics(window, logger)
-#ifdef RPI
-      ,
-      device(logger, port), gpio(logger, chip)
-#endif
-{
+      window(windowTitle, logger), graphics(window, logger),
+      device(logger, port), gpio(logger, chip) {
   status = true;
 
   logger.log(moody::Loggr::Level::INFO, "APP", "Logger initialized", {LF});
@@ -22,7 +18,6 @@ Application::~Application() {
 
 bool Application::getStatus() const { return status; }
 
-#ifdef RPI
 void Application::update(States::AppInput &input,
                          States::PaymentData &payment) {
 
@@ -55,4 +50,3 @@ void Application::update(States::AppInput &input,
   graphics.render(input, admin);
   window.present();
 }
-#endif
